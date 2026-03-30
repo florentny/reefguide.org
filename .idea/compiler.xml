@@ -2,6 +2,6 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="USE_RELEASE_OPTION" value="false" />
-    <bytecodeTargetLevel target="24" />
+    <bytecodeTargetLevel target="26" />
   </component>
 </project>

@@ -425,6 +425,8 @@ public class SpeciesTree {
 
         for(Document doc : sortedDocs) {
             String name = doc.get("name").toString();
+            if(name.equals("Biota"))
+                continue; // Skip root
             String rank = doc.get("rank").toString();
             String parent = doc.get("parent").toString();
             String category = doc.get("category") != null ? doc.get("category").toString() : null;
