@@ -32,11 +32,11 @@ import javax.swing.table.DefaultTableModel;
  */
 public class speciesEdit extends javax.swing.JFrame {
 
-    private final genReef35 db = new genReef35();
+    private final genReef4 db = new genReef4();
     private List<String> dist_a;
     private List<String> locations;
     private List<String> types;
-    private genReef35.Species node;
+    private genReef4.Species node;
 
     private int row = 0;
 
@@ -112,16 +112,16 @@ public class speciesEdit extends javax.swing.JFrame {
 
         dist_a = db.species_collection.getAllSpecies().stream().flatMap(s -> s.dist().stream()).sorted().distinct().collect(Collectors.toList());
         node = null;
-        locations =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).map(genReef35.photo::location).sorted().distinct().collect(Collectors.toList());
+        locations =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).map(genReef4.photo::location).sorted().distinct().collect(Collectors.toList());
         locations.addFirst("Palm Beach, Florida");
-        types =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).filter(p -> p.type() != null).map(genReef35.photo::type).sorted().distinct().collect(Collectors.toList());
+        types =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).filter(p -> p.type() != null).map(genReef4.photo::type).sorted().distinct().collect(Collectors.toList());
         locations.addFirst("");
         types.addFirst("");
     }
 
     private void fillValues() {
         Set<String> name = new TreeSet<>();
-        String[] list = db.species_collection.getAllSpecies().stream().map(genReef35.Species::genus).sorted().distinct().toList().toArray(new String[0]);
+        String[] list = db.species_collection.getAllSpecies().stream().map(genReef4.Species::genus).sorted().distinct().toList().toArray(new String[0]);
 
         jComboBox1.setModel(new DefaultComboBoxModel<>(list));
 
@@ -768,7 +768,7 @@ public class speciesEdit extends javax.swing.JFrame {
 
     }
 
-    final void populateTable(java.util.List<genReef35.photo> thumbList) {
+    final void populateTable(java.util.List<genReef4.photo> thumbList) {
         int colCount = jTable1.getColumnCount();
         javax.swing.table.TableColumn column;
         RowRenderer rowrend = new RowRenderer();
@@ -795,7 +795,7 @@ public class speciesEdit extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         int i = 0;
         if(thumbList != null) {
-            for(genReef35.photo tl : thumbList) {
+            for(genReef4.photo tl : thumbList) {
                 model.setValueAt(tl.id(), i, 0);
                 model.setValueAt(tl.location(), i, 1);
                 model.setValueAt(tl.type(), i, 2);
@@ -934,8 +934,8 @@ public class speciesEdit extends javax.swing.JFrame {
         if(node.photo().size() <= row)
             return;
 
-        genReef35.photo up =  node.photo().get(row);
-        genReef35.photo down = node.photo().get(row - 1);
+        genReef4.photo up =  node.photo().get(row);
+        genReef4.photo down = node.photo().get(row - 1);
         node.photo().set(row, down);
         node.photo().set(row - 1, up);
         populateTable(node.photo());
@@ -954,7 +954,7 @@ public class speciesEdit extends javax.swing.JFrame {
     }
 
 
-    genReef35.Species getNode(String name) {
+    genReef4.Species getNode(String name) {
         return db.species_collection.getSpecies(name);
     }
 

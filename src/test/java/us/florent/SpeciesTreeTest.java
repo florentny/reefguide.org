@@ -42,8 +42,8 @@ class SpeciesTreeTest {
         tree.addLeaf("Pomacentridae", "Abudefduf", "Genus");
         var sp = tree.addSpecies("sp1", "Abudefduf", "saxatilis", null, "Sergeant Major");
         tree.setSpeciesCategory(sp);
-        //tree.speciesMap.put(sp.getValue().getName(), (SpeciesTree.Species) sp.getValue());
-        //tree.speciesMap.put(((SpeciesTree.Species)sp.getValue()).getId(), (SpeciesTree.Species) sp.getValue());
+        //tree.speciesMap.put(sp.getValue().getName(), (SpeciesTree.SpeciesNode) sp.getValue());
+        //tree.speciesMap.put(((SpeciesTree.SpeciesNode)sp.getValue()).getId(), (SpeciesTree.SpeciesNode) sp.getValue());
     }
 
     @Test
@@ -64,7 +64,7 @@ class SpeciesTreeTest {
     void testAddSpeciesAndFindSpecies() {
         var spNode = tree.addSpecies("sp2", "Abudefduf", "taurus", null,"Taurus Demo");
         assertNotNull(spNode);
-        assertEquals("taurus", ((SpeciesTree.Species) spNode.getValue()).epithet);
+        assertEquals("taurus", ((SpeciesTree.SpeciesNode) spNode.getValue()).epithet);
 
         var found = tree.findSpecies("sp2");
         assertNotNull(found);
@@ -116,7 +116,7 @@ class SpeciesTreeTest {
     void testGetAllSpeciesBelowCategory() {
         var fam = tree.depthFirstSearch("Pomacentridae");
         fam.getValue().setCategory("Fish");
-        List<SpeciesTree.Species> list = tree.getAllSpeciesBelowCategory("Fish");
+        List<SpeciesTree.SpeciesNode> list = tree.getAllSpeciesBelowCategory("Fish");
         assertFalse(list.isEmpty());
         assertEquals("Sergeant Major", list.get(0).getName());
     }

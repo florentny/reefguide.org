@@ -3,16 +3,37 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
         <title>__REEF____TITLE__</title>
-        
-        <script type="text/javascript" src="jquery/js/jquery-1.7.1.min.js"></script>
-        <script type="text/javascript" src="jquery/js/jquery-ui-1.8.16.custom.min.js"></script>
+
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        <script type="text/javascript" src="js/TopNav.js"></script>
         <script type="text/javascript" src="js/mainindex.js"></script>
 
-        <link type="text/css" href="jquery/css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />
         <link rel="stylesheet" type="text/css" href="css/all.css" />
         <link rel="stylesheet" type="text/css" href="css/catalog.css" />
-        
-        
+
+        <script type="text/javascript">
+            var navItems = [
+                { label: 'Home', href: '__BASE__home.html' },
+                { type: 'area', reefRef: __REEFREF__, children: [
+                    { label: 'Caribbean', href: '__BASE__carib/index1.html', areaId: 1 },
+                    { label: 'Pacific', href: '__BASE__indopac/index1.html', areaId: 2 },
+                    { label: 'South Florida', href: '__BASE__keys/index1.html', areaId: 3 },
+                    { label: 'Hawaii', href: '__BASE__hawaii/index1.html', areaId: 4 },
+                    { label: 'Worldwide', href: '__BASE__index1.html', areaId: 0 }
+                ]},
+                { label: 'Index', children: [
+                    { label: '\u00a0By Common Names', href: 'cat.html' },
+                    { label: '\u00a0By Categories', href: 'cat_grp.html' },
+                    { label: '\u00a0By Scientific Names', href: 'cat_sci.html' }
+                ]},
+                { label: 'Updates', href: '__BASE__latest.html' },
+                { label: 'About', href: '__BASE__about.html' },
+                { label: 'RSS', href: 'http://reefguide.org/reefguide.xml' },
+                { label: 'Search', href: '__BASE__search.html' }
+            ];
+        </script>
+
         __ANALYTICS__
 
     </head>
@@ -20,7 +41,7 @@
 
     <body>
         <script>
-            $(document).ready(SpeciesInit);
+            document.addEventListener('DOMContentLoaded', SpeciesInit);
         </script>
 
         <div id="maincontainer">
@@ -28,64 +49,14 @@
             <div id="topsection" class="__BANNER__">
                 <h4>Florent's Guide To The __PRENAME__</h4>
                 <h1>__REEF__</h1>
-            
-         <ul class="topnav">
-          <li class="ba">
-            <a  href="__BASE__home.html">Home</a>
-          </li>
-          <li>
-            <span class="ba"><a>Area</a></span>
-            <ul class="subnav">
-              <li>
-                <a href="__BASE__carib/index1.html">__CHECK_CAR__</a>
-              </li>
-              <li>
-                <a href="__BASE__indopac/index1.html">__CHECK_PAC__</a>
-              </li>
-              <li>
-                <a href="__BASE__keys/index1.html">__CHECK_KEY__</a>
-              </li>
-              <li>
-                <a href="__BASE__hawaii/index1.html">__CHECK_HAW__</a>
-              </li>
-              <li>
-                <a href="__BASE__index1.html">__CHECK_ALL__</a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <span class="ba"><a>Index</a></span>
-            <ul class="subnav">
-              <li>
-                <a href="cat.html">&nbsp;By Common Names</a>
-              </li>
-              <li>
-                <a href="cat_grp.html">&nbsp;By Categories</a>
-              </li>
-              <li>
-                <a href="cat_sci.html">&nbsp;By Scientific Names</a>
-              </li>
-            </ul>
-          </li>
-          <li class="ba">
-            <a href="__BASE__latest.html">Updates</a>
-          </li>
-          <li class="ba">
-            <a href="__BASE__about.html">About</a>
-          </li>
-          <li class="ba">
-            <a href="http://reefguide.org/reefguide.xml">RSS</a>
-          </li>
-          <li class="ba">
-            <a href="__BASE__search.html">Search</a>
-          </li>
-        </ul>
 
-      </div>
+                <div id="topnav-root"></div>
+
+            </div>
 
             <div id="contentwrapper">
                  <div id="contentcolumnCat">
-                    
+
         <div class="catType">
             __LINKS__
         </div>
@@ -102,7 +73,6 @@
             </div>
             </div>
 
-           
 
 
         </div>

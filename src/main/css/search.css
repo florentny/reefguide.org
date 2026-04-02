@@ -1,0 +1,98 @@
+#loading-indicator {
+    vertical-align: middle;
+}
+
+img.thumb {
+    padding: 8px;
+}
+
+.searchpanel {
+    background: white;
+    color: black;
+    width: 800px;
+    margin: auto;
+    border-radius: 10px;
+}
+
+table.result {
+    width:760px;
+    margin: auto;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+    border-radius: 10px;
+    padding-bottom: 20px;
+    border-spacing: 0px;
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+thead.result {
+    text-align: left;
+    padding-bottom: 5px;
+
+}
+
+
+td {
+    border: 0px;
+    border-style: solid;
+    border-color: red;
+    padding: 0px;
+    margin:0px;
+}
+
+.red:hover {
+  background: bisque;
+}
+
+tr.even {
+    background: #eee;
+}
+
+div.searchdetails {
+    display:inline-block;
+    vertical-align: top;
+    line-height: 1.2em;
+    margin-top: 10px;
+}
+
+span.sdname {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+span.sdsname {
+    font-size: 18px;
+    font-style: italic;
+}
+
+able.result {
+    width:760px;
+    margin: auto;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+    border-radius: 10px;
+    padding-bottom: 20px;
+    border-spacing: 0px;
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+td {
+    border: 0px;
+    border-style: solid;
+    border-color: red;
+    padding: 0px;
+    margin:0px;
+}
+
+.red:hover {
+  background: bisque;
+}
+
+tr.even {
+    background: #eee;
+}
+

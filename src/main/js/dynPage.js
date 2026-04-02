@@ -1,360 +1,203 @@
 //
-// (c) 2007-2012 Florent Charpin
+// (c) 2007-2026 Florent Charpin
 //  www@reefguide.org
 //
 
-var times = 0;
-var curCol = 0;
+const SIZE_CONFIGS = {
+    "0": { imgWidth: 160, imgWidthAct: 144, thumbClass: "thumb3", cellClass: "celltdsmall" },
+    "1": { imgWidth: 240, imgWidthAct: 216, thumbClass: "thumb",  cellClass: "celltd" },
+    "2": { imgWidth: 400, imgWidthAct: 370, thumbClass: "thumb2", cellClass: "celltdbig" },
+    "3": { imgWidth: 316, imgWidthAct: 293, thumbClass: "thumb4", cellClass: "celltdbig1" }
+};
+
 var img_width = 240;
-var img_width_act = 216;
-var thumb_act = "thumb";
-var cell_size = "celltd";
-var check_cookie = 0;
-var firstrun = 0;
+let currentConfig = SIZE_CONFIGS["1"];
+let curCol = 0;
+let cookieChecked = false;
 
-function sizebig() {
-    img_width = 400;
-    img_width_act = 370;
-    thumb_act = "thumb2";
-    cell_size = "celltdbig";
+function setCookie(name, value) {
+    document.cookie = `${name}=${encodeURIComponent(value)};path=/`;
+}
+
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function setSize(sizeKey) {
+    currentConfig = SIZE_CONFIGS[sizeKey];
+    img_width = currentConfig.imgWidth;
     curCol = 0;
-    Set_Cookie("Reefsize", "2");
+    setCookie("Reefsize", sizeKey);
     creategrid();
 }
 
-function sizebig1() {
-    img_width = 316;
-    img_width_act = 293;
-    thumb_act = "thumb4";
-    cell_size = "celltdbig1";
-    curCol = 0;
-    Set_Cookie("Reefsize", "3");
-    creategrid();
-}
-
-function sizesmall() {
-    img_width = 160;
-    img_width_act = 144;
-    thumb_act = "thumb3";
-    cell_size = "celltdsmall";
-    curCol = 0;
-    Set_Cookie("Reefsize", "0");
-    creategrid();
-}
-
-function sizereg() {
-    img_width = 240;
-    img_width_act = 216;
-    thumb_act = "thumb";
-    cell_size = "celltd";
-    curCol = 0;
-    Set_Cookie("Reefsize", "1");
-    creategrid();
-}
-
-function Set_Cookie(name,value) {
-    var cookieString = name + "=" +escape(value) + ";path=/" ;
-    document.cookie = cookieString;
-}
-
-function Get_Cookie(name) {
-    var start = document.cookie.indexOf(name+"=");
-    var len = start+name.length+1;
-    if ((!start) && (name != document.cookie.substring(0,name.length))) return null;
-    if (start == -1) return null;
-    var end = document.cookie.indexOf(";",len);
-    if (end == -1) end = document.cookie.length;
-    return unescape(document.cookie.substring(len,end));
-}
+function sizesmall() { setSize("0"); }
+function sizereg()   { setSize("1"); }
+function sizebig()   { setSize("2"); }
+function sizebig1()  { setSize("3"); }
 
 function creategrid() {
-    
-    var myWidth = 0, myHeight = 0;
-    if( typeof( window.innerWidth ) == 'number' ) {
-        //Non-IE
-        myWidth = window.innerWidth;
-        myHeight = window.innerHeight;
-    } else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-        //IE 6+ in 'standards compliant mode'
-        myWidth = document.documentElement.clientWidth;
-        myHeight = document.documentElement.clientHeight;
-    } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-        //IE 4 compatible
-        myWidth = document.body.clientWidth;
-        myHeight = document.body.clientHeight;
+    const viewWidth = window.innerWidth;
+
+    if (!cookieChecked) {
+        let cookie = getCookie("Reefsize");
+        if (cookie === null) {
+            if (viewWidth < 920) cookie = "0";
+            else if (viewWidth > 1600) cookie = "3";
+        }
+        if (cookie !== null && SIZE_CONFIGS[cookie]) {
+            currentConfig = SIZE_CONFIGS[cookie];
+            img_width = currentConfig.imgWidth;
+            curCol = 0;
+        }
+        cookieChecked = true;
     }
-    
-    if(check_cookie == 0) {
 
-        var cookie = Get_Cookie("Reefsize");
-        if(myWidth < 920) {
-            if(cookie == null) {
-                cookie = "0";
-            }
-        }
-        if(myWidth > 2200) {
-            if(cookie == null) {
-                cookie = "3";
-            }
-        }
-        if(cookie != null) {
-            if(cookie == "0") {
-                img_width = 160;
-                img_width_act = 144;
-                thumb_act = "thumb3";
-                cell_size = "celltdsmall";
-                curCol = 0;
-                //setInitVal(0);
-            }
-            if(cookie == "2") {
-                img_width = 400;
-                img_width_act = 370;
-                thumb_act = "thumb2";
-                cell_size = "celltdbig";
-                curCol = 0;
-               // setInitVal(3);
-            }
-            if(cookie == "3") {
-                img_width = 316;
-                img_width_act = 293;
-                thumb_act = "thumb4";
-                cell_size = "celltdbig1";
-                curCol = 0;
-                //setInitVal(2);
-            }
-        }
-
-        check_cookie = 1;
-    }
-    
-
-    
-    //var TTwidth =  document.images['tstimg'].width;
-    var TTwidth = myWidth;
-    var numpix = img_reef.length;
-    var layout = new Array();
-    var numCol = Math.floor((TTwidth - panelOffset) / img_width);
-    var numRow = Math.ceil(numpix / numCol);
-    if((maxCol != 0) && (numCol > maxCol))
-        numCol = maxCol;
-    
-    if(curCol == numCol)
-        return;
-    
+    const { imgWidth, imgWidthAct, thumbClass, cellClass } = currentConfig;
+    const numpix = img_reef.length;
+    let numCol = Math.floor((viewWidth - panelOffset) / imgWidth);
+    if (maxCol !== 0 && numCol > maxCol) numCol = maxCol;
+    if (curCol === numCol) return;
     curCol = numCol;
-    
-    var cum = 0;
-    var count = 0;
-    
-    
-    var ie_bug = true;
-    try {
-        document.createElement('<td colspan="3">');
-    } catch(e) {
-        ie_bug = false;
+
+    const container = document.getElementById("TopTable");
+    container.innerHTML = "";
+
+    let colpos = 0;
+    let from = 0;
+    let catIndex = 0;
+    let imageRow, nameRow;
+    let pendingHeaders = [];
+    let catSpansMultipleRows = false;
+
+    function flushRow(upTo) {
+        if (pendingHeaders.length > 0) {
+            const headerRow = document.createElement("div");
+            headerRow.className = "grid-row";
+            headerRow.style.gridTemplateColumns = `repeat(${numCol}, 1fr)`;
+
+            for (let k = 0; k < pendingHeaders.length; k++) {
+                const h = pendingHeaders[k];
+                const nextStart = (k + 1 < pendingHeaders.length)
+                    ? pendingHeaders[k + 1].startCol : colpos;
+                const span = nextStart - h.startCol;
+
+                const catDiv = document.createElement("div");
+                catDiv.className = "catheader";
+                if (h.showId) {
+                    catDiv.id = h.name.replace(/ /g, "_");
+                }
+                catDiv.style.gridColumn = `span ${span}`;
+
+                const link = document.createElement("a");
+                link.href = h.name.replace(/ /g, "_") + ".html";
+                link.textContent = h.name;
+                catDiv.appendChild(link);
+                headerRow.appendChild(catDiv);
+            }
+            container.appendChild(headerRow);
+            pendingHeaders = [];
+        }
+
+        container.appendChild(imageRow);
+        for (let j = from; j <= upTo; j++) {
+            const nameCell = document.createElement("div");
+            nameCell.className = "nameid";
+            nameCell.style.width = imgWidth + "px";
+
+            const nameLink = document.createElement("a");
+            nameLink.className = "nameid";
+            nameLink.href = link_reef[j];
+            nameLink.textContent = name_reef[j];
+
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "nameid";
+            nameDiv.appendChild(nameLink);
+            nameCell.appendChild(nameDiv);
+            nameRow.appendChild(nameCell);
+        }
+        container.appendChild(nameRow);
     }
 
-    var mybodyT =document.getElementById("TopTable");
-    var deltable = mybodyT.getElementsByTagName("tbody")[0];
-    if(deltable != null)
-        mybodyT.removeChild(deltable);
+    function startNewRow() {
+        imageRow = document.createElement("div");
+        imageRow.className = "grid-row";
+        imageRow.style.gridTemplateColumns = `repeat(${numCol}, 1fr)`;
 
+        nameRow = document.createElement("div");
+        nameRow.className = "grid-row";
+        nameRow.style.gridTemplateColumns = `repeat(${numCol}, 1fr)`;
+    }
 
-    var mytable;
-    mybody = document.createElement("tbody");
+    for (let i = 0; i < numpix; i++) {
+        if (ref_reef[catIndex] === i) {
+            const newCatSize = ((catIndex + 1 < ref_reef.length)
+                ? ref_reef[catIndex + 1] : numpix) - i;
 
-    mybodyT.appendChild(mybody);
-
-
-
-    var  start = 0;
-    var  colpos = 0;
-    var mycurrent_row;
-    var from = 0;
-    var to = 0;
-    var span = 0;
-    var color = new Array();
-    color[0] = "green";
-    color[1] = "blue";
-    color[2] = "yellow";
-    var colorNum = 0;
-
-
-    for(var i = 0; i < numpix; i++) {
-        span = 1;
-        if(colpos == 0) {
-            main_tr = document.createElement("tr");
-            mybody.appendChild(main_tr);
-            var end = i+numCol;
-            if(end > numpix)
-                end = numpix;
-            for(var j = i; j < end;) {
-                var dispHeader = false;
-                var newCat = false;
-                if((i != 0) && (j == i)) {
-                    if(ref_reef[start] < end) {
-                        //if(ref_reef[start-1] > (j - numCol))
-                        dispHeader = true;
-                        span = ref_reef[start] - j;
-                    }
-                    else {
-                        if(ref_reef[start-1] > (j - numCol)) {
-                            dispHeader = true;
-                            span = numCol;
-                            if((j+numCol) >= end)
-                                span = end - j;
-                        }
-                    
-                    }
-                }
-            
-                if(ref_reef[start] == j) {
-                    dispHeader = true;
-                    newCat = true;
-                    if(ref_reef[start+1] >= i+numCol) {
-                        span = i+numCol-j;
-                    }
-                    else {
-                        span = ref_reef[start+1] - j;
-                    }
-                }
-            
-                if(dispHeader) {
-                    if(ie_bug) {
-                        mycurrent_cell =  document.createElement('<td colspan="' + span + '">');
-                    } else {      
-                        mycurrent_cell = document.createElement("td");
-                        mycurrent_cell.setAttribute("colspan",span);
-                
-                    }
-                    mycurrent_cell.setAttribute("class","catrow");
-            
-                    div = document.createElement("div");
-                    div.setAttribute("class","catheader");
-                    
-                    if(newCat)
-                    {
-                        if(i != 0)
-                            div.setAttribute("id", cat_reef[start].replace(/ /g, "_"));
-                        currenttext = document.createTextNode(cat_reef[start]);
-                        var link = document.createElement("a");
-                        link.setAttribute("href", cat_reef[start].replace(/ /g, "_") + ".html");
-                        link.appendChild(currenttext);
-                        div.appendChild(link);
-                    }
-                    else
-                    {
-                        currenttext = document.createTextNode(cat_reef[start-1]);
-                        link = document.createElement("a");
-                        link.setAttribute("href", cat_reef[start-1].replace(/ /g, "_") + ".html");
-                        link.appendChild(currenttext);
-                        div.appendChild(link);
-                    }
-                    mycurrent_cell.appendChild(div);
-                    main_tr.appendChild(mycurrent_cell);
-                    if(newCat)
-                        start = start + 1;
-                    j = j + span;
-                }
-                else {
-                    if(ie_bug) {
-                        mycurrent_cell =  document.createElement('<td colspan="' + span + '">');
-                    } else {
-                        mycurrent_cell = document.createElement("td");
-                        mycurrent_cell.setAttribute("colspan",span);
-                    }
-                    mycurrent_cell.setAttribute("id","catrow");
-                    main_tr.appendChild(mycurrent_cell);
-                    j = j + span;
+            if (colpos > 0) {
+                const remaining = numCol - colpos;
+                if (catSpansMultipleRows || newCatSize > remaining) {
+                    flushRow(i - 1);
+                    from = i;
+                    colpos = 0;
                 }
             }
-        
-        
-            main_tr=document.createElement("tr");
-            mybody.appendChild(main_tr);
-        }
-    
-        mycurrent_cell = document.createElement("td");
-    
-        mycurrent_cell.setAttribute("class", cell_size);
-        link = document.createElement("a");
-        link.setAttribute("href", link_reef[i]);
-        if(ie_bug) {
-            currentimg = document.createElement('<img class="' + 'selframe">');
-        } else {
-            currentimg = document.createElement("img");
-            currentimg.setAttribute("class", "selframe");
-        }
-        currentimg.setAttribute("src", img_reef[i].replace("thumb", thumb_act));
-        currentimg.setAttribute("width", img_width_act);
-        currentimg.setAttribute("alt", name_reef[i]  + " - " + name_sci[i]);
-        if(name_sci[i] != "")
-            currentimg.setAttribute("title", name_reef[i] + " - " + name_sci[i]);
-        else
-            currentimg.setAttribute("title", name_reef[i]);
-        link.appendChild(currentimg);
-        mycurrent_cell.appendChild(link);
-        main_tr.appendChild(mycurrent_cell);
 
+            pendingHeaders.push({
+                name: cat_reef[catIndex],
+                startCol: colpos,
+                showId: catIndex > 0
+            });
+            catSpansMultipleRows = false;
+            catIndex++;
+        }
+
+        if (colpos === 0) {
+            startNewRow();
+        }
+
+        const imgCell = document.createElement("div");
+        imgCell.className = cellClass;
+
+        const imgLink = document.createElement("a");
+        imgLink.href = link_reef[i];
+
+        const img = document.createElement("img");
+        img.className = "selframe";
+        img.src = img_reef[i].replace("thumb", thumbClass);
+        img.width = imgWidthAct;
+        img.alt = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
+        img.title = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
+
+        imgLink.appendChild(img);
+        imgCell.appendChild(imgLink);
+        imageRow.appendChild(imgCell);
 
         colpos++;
-        if((colpos == numCol) || (i == (numpix - 1))) {
-            colpos = 0;
-            main_tr=document.createElement("tr");
-            mybody.appendChild(main_tr);
-    
-            for(j = from; j <= i; j++) {
-                var div="";
-                if(ie_bug) {
-                    mycurrent_cell = document.createElement('<td class="nameid">');
-                    div = document.createElement('<div class="nameid">');
-                }
-                else {
-                    mycurrent_cell = document.createElement("td");
-                    mycurrent_cell.setAttribute("class","nameid");
-                    div = document.createElement("div");
-                    div.setAttribute("class","nameid");
-                }
-                mycurrent_cell.setAttribute("width", img_width);
-                if(ie_bug) {
-                    link = document.createElement('<a class="nameid">');
-                }
-                else {
-                    link = document.createElement("a");
-                    link.setAttribute("class","nameid");
-                }
-                link.setAttribute("href", link_reef[j]);
-                currenttext = document.createTextNode(name_reef[j]);
-                link.appendChild(currenttext);
-                div.appendChild(link);
-                mycurrent_cell.appendChild(div);
-                main_tr.appendChild(mycurrent_cell);
-        
+        if (colpos === numCol || i === numpix - 1) {
+            flushRow(i);
+            from = i + 1;
+            if (colpos === numCol && i < numpix - 1) {
+                catSpansMultipleRows = true;
             }
-            from = i+1;
-    
+            colpos = 0;
         }
     }
-
 }
 
-
-function hideLevel( _id) {
-    var thisLevel = document.getElementById( _id );
-    thisLevel.style.display = "none";
-    thisLevel = document.getElementById( 'tree' + _id);
-    thisLevel.className = "close";
+function hideLevel(id) {
+    const el = document.getElementById(id);
+    el.style.display = "none";
+    document.getElementById("tree" + id).className = "close";
 }
 
-function show( _id) {
-    var thisLevel = document.getElementById( _id );
-    if ( thisLevel.style.display == "none") {
-        thisLevel.style.display = "block";
-        thisLevel = document.getElementById( 'tree' + _id );
-        thisLevel.className = "open";
-    }
-    else {
-        hideLevel( _id);
+function show(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === "none") {
+        el.style.display = "block";
+        document.getElementById("tree" + id).className = "open";
+    } else {
+        hideLevel(id);
     }
 }
-

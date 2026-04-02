@@ -2,17 +2,17 @@ plugins {
     id 'java'
 }
 
-group 'us.florent'
-version '3.5'
+group = 'us.florent'
+version = '4.1'
 
 repositories {
     mavenCentral()
 }
 
 jar {
-    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
-        attributes 'Main-Class': 'us.florent.genReef35'
+        attributes 'Main-Class': 'us.florent.genReef4'
     }
     from {
         configurations
@@ -26,9 +26,9 @@ jar {
 dependencies {
     implementation 'org.json:json:20250517'
     implementation 'org.mongodb:mongodb-driver-sync:5.6.+'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.19.+'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.+'
     implementation 'org.junit.jupiter:junit-jupiter:5.12.+'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.12.+'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.12.+'

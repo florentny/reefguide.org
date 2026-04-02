@@ -6,25 +6,47 @@
         <meta name="description" content="__TITLE__ - __REEF__" />
         <meta name="keywords" content="Florent Reef Guide - __TITLE__ - __REEF__" />
         <meta name="author" content="Florent Charpin" />
-        
-        <script type="text/javascript" src="../jquery/js/jquery-1.7.1.min.js"></script>
-        <script type="text/javascript" src="../jquery/js/jquery-ui-1.8.16.custom.min.js"></script>
+
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        <script type="text/javascript" src="../js/TopNav.js"></script>
         <script type="text/javascript" src="../js/mainindex.js"></script>
 
-        <link type="text/css" href="../jquery/css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />	
         <link rel="stylesheet" type="text/css" href="../css/all.css" />
         <link rel="stylesheet" type="text/css" href="../css/species.css" />
-        
+
+        <script type="text/javascript">
+            var navItems = [
+                { label: 'Home', href: '../__BASE__home.html' },
+                { type: 'area', reefRef: __REEFREF__, children: [
+                    { label: 'Caribbean', href: '__BASE__../carib/index1.html', areaId: 1 },
+                    { label: 'Pacific', href: '__BASE__../indopac/index1.html', areaId: 2 },
+                    { label: 'South Florida', href: '__BASE__../keys/index1.html', areaId: 3 },
+                    { label: 'Hawaii', href: '__BASE__../hawaii/index1.html', areaId: 4 },
+                    { label: 'Worldwide', href: '__BASE__../index1.html', areaId: 0 }
+                ]},
+                { label: 'Index', children: [
+                    { label: '\u00a0By Common Names', href: '../cat.html' },
+                    { label: '\u00a0By Categories', href: '../cat_grp.html' },
+                    { label: '\u00a0By Scientific Names', href: '../cat_sci.html' }
+                ]},
+                { label: 'Updates', href: '../__BASE__latest.html' },
+                { label: 'About', href: '../__BASE__about.html' },
+                { label: 'RSS', href: 'http://reefguide.org/reefguide.xml' },
+                { label: 'Search Species', href: '../__BASE__search.html?area=__REEFREF__' }
+            ];
+        </script>
+
         __ANALYTICS__
-    
+
     </head>
-    
+
      <!--
          Web site design and all photographs copyright 2004-2026 Florent Charpin. All rights reserved. Email: www@reefguide.org
     -->
     <body>
         <script>
-            $(document).ready(photoInit);
+            document.addEventListener('DOMContentLoaded', photoInit);
         </script>
         <div id="maincontainer">
 
@@ -32,57 +54,7 @@
                 <h4>Florent's Guide To The __PRENAME__</h4>
                 <h1>__REEF__</h1>
 
-                <ul class="topnav">
-                    <li class="ba">
-                        <a  href="../__BASE__home.html">Home</a>
-                    </li>
-                    <li>
-                        <span class="ba"><a>Area</a></span>
-                        <ul class="subnav">
-                                <li>
-                                    <a href="__BASE__../carib/index1.html">__CHECK_CAR__</a>
-                                  </li>
-                                  <li>
-                                    <a href="__BASE__../indopac/index1.html">__CHECK_PAC__</a>
-                                  </li>
-                                  <li>
-                                    <a href="__BASE__../keys/index1.html">__CHECK_KEY__</a>
-                                  </li>
-                                  <li>
-                                    <a href="__BASE__../hawaii/index1.html">__CHECK_HAW__</a>
-                                  </li>
-                                  <li>
-                                    <a href="__BASE__../index1.html">__CHECK_ALL__</a>
-                                  </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <span class="ba"><a>Index</a></span>
-                        <ul class="subnav">
-                                <li>
-                                    <a href="../cat.html">&nbsp;By Common Names</a>
-                                  </li>
-                                  <li>
-                                    <a href="../cat_grp.html">&nbsp;By Categories</a>
-                                  </li>
-                                  <li>
-                                    <a href="../cat_sci.html">&nbsp;By Scientific Names</a>
-                                  </li>
-                        </ul>
-                    </li>
-                    <li class="ba">
-                        <a href="../__BASE__latest.html">Updates</a>
-                    </li>
-                    <li class="ba">
-                        <a href="../__BASE__about.html">About</a>
-                    </li>
-                    <li class="ba">
-                        <a href="http://reefguide.org/reefguide.xml">RSS</a>
-                    </li>
-                    <li class="ba">
-                        <a href="../__BASE__search.html?area=__REEFREF__">Search Species</a>
-                    </li>
-                </ul>
+                <div id="topnav-root"></div>
 
             </div>
 
@@ -90,8 +62,8 @@
                 <div id="contentcolumn">
                     <div class="typetitle">__NAME__</div>
                     <div class="typetitlesn">__SCINAME2__</div>
-                    <div style="margin: auto;" id="content">   
-                            <div style="text-align: center;" id="gallerydiv">   
+                    <div style="margin: auto;" id="content">
+                            <div style="text-align: center;" id="gallerydiv">
                                 __FISH_HTML__
 
                             </div>
@@ -101,14 +73,14 @@
 
             <div id="leftcolumn" style="font-size: 10px;">
                 <div class="innertube">
-                     <div class="ui-state-default ui-corner-all infobox">
+                     <div class="infobox">
                     	<div class="navbox" style="margin-left: 0px; margin-top: 5px;  margin-bottom: 5px; ">
-                    		<div class="ui-icon ui-icon-arrowreturnthick-1-w" style="float: left; display: block; vertical-align: middle"></div>
+                    		<div class="back-arrow" style="float: left; display: block; vertical-align: middle"></div>
                     		<div style=" margin-left: 20px;"><a href="__INDEX__">Back to <i>__NAME2__</i> index page</a></div>
                         </div>
                     </div>
-                    
-                     <div class="ui-state-default ui-corner-all infobox">
+
+                     <div class="infobox">
 
                         <div class="infodetails">__SCINAME__</div>
                         <div class="infodetails">__AKA__</div>
@@ -116,15 +88,15 @@
                         <div class="infodetails">__SIZE__</div>
                         <div class="infodetails">__DEPTH__</div>
                         <div class="infodetails">__DIST__</div>
-                        
+
                         <br />
                     </div>
-                    
-                    <div class="ui-state-default ui-corner-all infobox">
+
+                    <div class="infobox">
                     <br />
                      __THUMBS__
                     </div>
-                    
+
                     <br />
                     All Photographs<br />
                     &copy; 2026 Florent Charpin

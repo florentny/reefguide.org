@@ -1,0 +1,77 @@
+.catType {
+    color: white; 
+    margin: 20px;
+    text-align: center;
+}
+
+.bigalpha {
+    color: red;
+    font-size: 18pt;
+    font-style: italic;
+    margin: 0px;
+    margin-bottom: 3px;
+    margin-top: 8px;
+    padding: 0px
+}
+
+.biggrp {
+    color: #009999;
+    font-size: 18pt;
+    font-style: italic;
+    margin: 0px;
+    margin-bottom: 3px;
+    margin-top: 8px;
+    padding: 0px
+}
+
+a.tocname:link, a.tocname:visited {
+    color: yellow;
+    margin-left: 15px;
+    text-decoration: none
+}
+
+a.tocname:hover, a.tocname:active {
+    color: green;
+    margin: 0px;
+    margin-left: 15px;
+    text-decoration: none
+}
+
+a.tocnamesci:link, a.tocnamesci:visited {
+    color: #ff9900;
+    font-style: italic;
+    margin-left: 15px;
+    text-decoration: none
+}
+
+a.tocnamesci:hover, a.tocnamesci:active {
+    color: green;
+    margin: 0px;
+    margin-left: 15px;
+    text-decoration: none;
+    font-style: italic;
+}
+
+a.tocnamegrp:link, a.tocnamegrp:visited {
+    color: #ffff33;
+    margin-left: 25px;
+    text-decoration: none
+}
+
+a.tocnamegrp:hover, a.tocnamegrp:active {
+    color: green;
+    margin: 0px;
+    margin-left: 25px;
+    text-decoration: none;
+    font-style: italic;
+}
+
+a.catalog:link, a.catalog:visited {
+    color: #ffcc00;
+    text-decoration: none
+}
+
+a.catalog:hover, a.catalog:active {
+    color: green;
+    text-decoration: none;
+}
