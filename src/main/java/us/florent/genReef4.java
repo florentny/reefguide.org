@@ -2,7 +2,6 @@ package us.florent;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.MappedByteBuffer;
@@ -579,7 +578,7 @@ public class genReef4 {
             latestGroup.index = -1;
             genIndexFile(baseIndex, latestGroup, reefRef, headers[0]);
             genRSS(latestGroup, baseIndex);
-            updateMongo(reefRef, baseIndex);
+            updateSearchJson(reefRef, baseIndex);
             copyFile(baseIndex + "/index1.html", baseIndex + "/index.html");
 
         } catch(IOException ex) {
@@ -590,22 +589,30 @@ public class genReef4 {
         return species_collection.getAllSpecies().size();
     }
 
-    private void updateMongo(int region, String baseIndex) throws IOException {
-        if(baseIndex.contains("clean")) {
-            return;
-        }
+    private void updateSearchJson(int region, String baseIndex) throws IOException {
         StringWriter writer = new StringWriter();
         JsonGenerator jsonGenerator = new JsonFactory().createGenerator(writer);
         jsonGenerator.writeStartArray();
-        for(var sp : species_collection.getAllSpecies()) {
+        for(var sp : species_collection.getAllSpecies().stream().sorted(Comparator.comparing(Species::fullSciName)).toList()) {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("name", sp.id);
             jsonGenerator.writeStringField("fullname", sp.name);
             jsonGenerator.writeStringField("sname", sp.sciName);
             jsonGenerator.writeStringField("subcategory", species_collection.getCat(sp.id));
-            jsonGenerator.writeStringField("category", String.join("/", speciesTree.getPathToSpecies(sp.id).stream().skip(3).map(SpeciesTree.Taxon::getName).toList()));
-            jsonGenerator.writeStringField("size", getSpNull(sp.size));
-            jsonGenerator.writeStringField("depth", getSpNull(sp.depth));
+            var taxon = speciesTree.getPathToSpecies(sp.id);
+            jsonGenerator.writeStringField("category", String.join("/", taxon.stream().skip(3).map(t -> {
+                if(t instanceof SpeciesTree.SpeciesNode)
+                    return "";
+                if(t.getCategory() != null && !t.getCategory().contains("and")) {
+                    return t.getName() + "(" + t.getCategory() + ")";
+                }
+                return t.getName();
+
+            }).filter(s -> !s.isEmpty()).toList()));
+            jsonGenerator.writeStringField("synonyms", getSpNull(sp.synonyms()));
+            jsonGenerator.writeStringField("order", taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Order")).map(SpeciesTree.Taxon::getName).findFirst().orElse(""));
+            jsonGenerator.writeStringField("family", taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Family")).map(SpeciesTree.Taxon::getName).findFirst().orElse(""));
+            jsonGenerator.writeStringField("aka", getSpNull(sp.aka()));
             jsonGenerator.writeNumberField("thumb1", sp.thumbs.getFirst());
             jsonGenerator.writeEndObject();
         }
@@ -613,12 +620,7 @@ public class genReef4 {
         jsonGenerator.flush();
         writer.flush();
         String json = writer.toString();
-
-        try(FileWriter file = new FileWriter(basepathIndexAll + "/species_region_" + region + ".json")) {
-            file.write(json);
-        }
-
-
+        writeToFile(json, basepathIndexAll + "/species_region_" + region + ".json");
     }
 
     private String getSpNull(String s) {

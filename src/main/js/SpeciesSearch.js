@@ -20,7 +20,7 @@
 
     function reefSearch(species, query) {
         var words = query.split(' ');
-        var fields = ['fullname', 'sname', 'subcategory', 'category'];
+        var fields = ['fullname', 'sname', 'subcategory', 'category', 'synonyms', 'aka'];
         for (var f = 0; f < fields.length; f++) {
             var allMatch = true;
             for (var i = 0; i < words.length; i++) {
@@ -69,7 +69,7 @@
                         e('br'),
                         'Category: ' + species.subcategory,
                         e('br'),
-                        'Size: ' + species.size + '\u00a0\u00a0\u00a0\u00a0Depth: ' + species.depth + ' ft.',
+                        'Order: ', e('span', { className: 'sdsname' }, species.order), '\u00a0\u00a0\u00a0\u00a0Family: ', e('span', { className: 'sdsname' }, species.family),
                         e('br'),
                         e('a', {
                             href: selRegion.path + species.name + '.html?search=' + xquery + '&area=' + selRegion.code,
