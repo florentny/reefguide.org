@@ -240,6 +240,8 @@ public class genReef4 {
         speciesTree = new SpeciesTree();
         try {
             speciesTree.buildTaxonomy();
+            speciesTree.addAphiaIDB();
+            speciesTree.addInaturalistIDs();
         } catch(Exception ex) {
             java.util.logging.Logger.getLogger(genReef4.class.getName()).log(Level.SEVERE, "Cannot Build Taxon Tree", ex);
             throw ex;
@@ -916,6 +918,29 @@ public class genReef4 {
         }
 
         outString = outString.replace("__FISH_HTML__", output.toString());
+
+        var node = speciesTree.findSpecies(sp.id);
+        if(node.AphiaID != 0 || node.iNaturalistID != 0) {
+            var links =  new StringBuilder();
+            links.append("<div class=\"infobox\"><div class=\"worms\">\n");
+            if(node.AphiaID != 0) {
+                links.append("<a href=\"https://marinespecies.org/aphia.php?p=taxdetails&id=").append(node.AphiaID).append("\" target=\"_blank\">WoRMS ID: ").
+                        append(node.AphiaID).append(Character.toChars(0x1F517)).append("</a>");
+            }
+            if(node.iNaturalistID != 0) {
+                if(node.AphiaID != 0) {
+                    links.append("<br />\n");
+                }
+                links.append("<a href=\"https://www.inaturalist.org/taxa/").append(node.iNaturalistID).append("\" target=\"_blank\">iNaturalist ID: ").
+                        append(node.iNaturalistID).append(Character.toChars(0x1F517)).append("</a>");
+            }
+            links.append("</div></div>\n");
+            outString = outString.replace("__LINKS__", links.toString());
+        } else {
+            outString = outString.replace("__LINKS__", "");
+        }
+
+
 
         writeToFile(outString, baseIndex + "/" + sp.id + ".html");
     }

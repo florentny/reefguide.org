@@ -11,6 +11,9 @@ import org.json.JSONObject;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,6 +24,8 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +40,8 @@ import java.util.TreeSet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static java.util.Arrays.asList;
 
@@ -48,7 +55,7 @@ public class SpeciesTree {
 
     Map<String, SpeciesNode> speciesMap;
 
-    Map<String, String> categoryToSuperCategory;
+    Map<String, SuperCategory> categoryToSuperCategory;
 
     public enum SuperCategory {
         FISH("Fish"), INVERTEBRATES("Invertebrates"), SPONGES("Sponges"), CORALS("Corals"), ALGAE("Algae"), MAMMALS("Mammals"), OTHER("Other");
@@ -72,6 +79,7 @@ public class SpeciesTree {
         private String superCategory = null;
         private String orgName = null;
         int AphiaID;
+        int iNaturalistID;
         int numSpecies = 0;
 
 
@@ -190,6 +198,11 @@ public class SpeciesTree {
         public String getShortSciName() {
             //return genus.charAt(0) + "." + getSubgenusPart() +  epithet;
             return genus.charAt(0) + ". " +  epithet;
+        }
+
+        public String getSciNameNoSub() {
+            //return genus.charAt(0) + "." + getSubgenusPart() +  epithet;
+            return genus+ " " +  epithet;
         }
 
     }
@@ -514,7 +527,10 @@ public class SpeciesTree {
                 String cat = parent.getValue().getCategory();
                 sp.getValue().setCategory(cat);
                 if(categoryToSuperCategory != null) {
-                    sp.getValue().setSuperCategory(categoryToSuperCategory.get(cat));
+                    SuperCategory sc = categoryToSuperCategory.get(cat);
+                    if(sc != null) {
+                        sp.getValue().setSuperCategory(sc.getName());
+                    }
                 }
                 return;
             }
@@ -522,10 +538,10 @@ public class SpeciesTree {
         }
     }
 
-    private Map<String, String> buildCategoryToSuperCategoryMap(MongoDatabase db) {
+    private Map<String, SuperCategory> buildCategoryToSuperCategoryMap(MongoDatabase db) {
         MongoCollection<Document> collection = db.getCollection("reefconfig");
         Document doc = collection.find(new Document("reef", "reeflist4")).first();
-        Map<String, String> map = new HashMap<>();
+        Map<String, SuperCategory> map = new HashMap<>();
         if(doc == null) return map;
         for(String superCat : doc.keySet()) {
             if(superCat.equals("_id") || superCat.equals("reef")) continue;
@@ -538,7 +554,7 @@ public class SpeciesTree {
                         if(subList instanceof List<?> innerList) {
                             for(Object category : innerList) {
                                 if(category instanceof String cat) {
-                                    map.put(cat, superCat);
+                                    map.put(cat, SuperCategory.valueOf(superCat.toUpperCase()));
                                 }
                             }
                         }
@@ -783,16 +799,19 @@ public class SpeciesTree {
     }
 
 
-    public List<String> getAllSpeciesSciNAmes(TreeNode<Taxon> node) {
+    public List<String> getAllSpeciesSciNAmes(TreeNode<Taxon> node, boolean includeSubgenus) {
         List<String> leaves = new ArrayList<>();
         if(node.getChildren().isEmpty()) {
             if(node.getValue().getRank().equals("Species")) {
                 SpeciesNode sp = (SpeciesNode) node.getValue();
-                leaves.add(sp.getSciName());
+                if(includeSubgenus)
+                    leaves.add(sp.getSciName());
+                else
+                    leaves.add(sp.getSciNameNoSub());
             }
         } else {
             for(TreeNode<Taxon> child : node.getChildren()) {
-                leaves.addAll(getAllSpeciesSciNAmes(child));
+                leaves.addAll(getAllSpeciesSciNAmes(child, includeSubgenus));
             }
         }
         return leaves;
@@ -826,8 +845,29 @@ public class SpeciesTree {
         return count;
     }
 
+    void addInaturalistIDs() throws Exception {
+        try(BufferedReader br = new BufferedReader(new FileReader("inaturalist.txt"))) {
+            String line;
+            while((line = br.readLine()) != null) {
+                String[] fields = line.split(",");
+                SpeciesNode sp = speciesMap.get(fields[0].trim());
+                if(sp == null) {
+                    System.out.println("iNaturalist - Species not found: " + fields[0]);
+                    continue;
+                }
+                sp.iNaturalistID = Integer.parseInt(fields[1].trim());
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     void addAphiaIDB() throws Exception {
-        System.out.println();
+        addAphiaIDB(false);
+    }
+
+    void addAphiaIDB(boolean compare) throws Exception {
+
         try(BufferedReader br = new BufferedReader(new FileReader("worms.txt"))) {
             String line;
             while((line = br.readLine()) != null) {
@@ -860,8 +900,10 @@ public class SpeciesTree {
                 //result.forEach(t -> System.out.print(t.getName() + "[}" + t.getRank() + "] - "));
                 //System.out.println();
 
-                //compareTaxonLists(sp.getName(), list, result);
-                compareTaxonLists(sp.getName(), result, list);
+                if(compare) {
+                    //compareTaxonLists(sp.getName(), list, result);
+                    compareTaxonLists(sp.getName(), result, list);
+                }
 
             }
         } catch(IOException e) {
@@ -915,10 +957,96 @@ public class SpeciesTree {
         }
     }
 
+    void iNaturalist() {
+        File file = new File("/tmp/inaturalist/taxa.csv");
+        if(!file.exists()) {
+            try {
+                iNaturalistDownload();
+            } catch(Exception e) {
+                System.out.println("Failed to download iNaturalist taxonomy: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        var map = new HashMap<String, String>();
+        try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while((line = br.readLine()) != null) {
+                String[] fields = line.split(",");
+                String id = fields[0].trim();
+                String sciName = fields[13].trim();
+                String type = fields[14].trim();
+                if(type.equals("species")) {
+                    map.put(sciName, id);
+                }
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        StringBuilder out = new StringBuilder();
+
+        getAllSpeciesSciNAmes(root, false).forEach(sciName -> {
+                    String id = map.get(sciName);
+                    if(id == null) {
+                        System.out.println("iNaturalist - No match for: " + sciName);
+                    } else {
+                        out.append(sciName).append(",").append(id).append("\n");
+                    }
+                });
+
+        try(FileWriter writer = new FileWriter("/tmp/inaturalist.txt")) {
+                writer.write(out.toString());
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    void iNaturalistDownload() throws IOException, InterruptedException {
+        String zipFilePath = "/tmp/inaturalist-taxonomy.dwca.zip";
+        String url = "https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip";
+        File newDir = new File("/tmp/inaturalist");
+        if(!newDir.exists()) {
+            newDir.mkdirs();
+        }
+        Path path = Paths.get("/tmp/inaturalist/inaturalist-taxonomy.dwca.zip");
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .build();
+
+        // Downloads the file directly to the specified path
+        client.send(request, HttpResponse.BodyHandlers.ofFile(path));
+
+        // Unzip the file
+        try(ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath))) {
+            ZipEntry entry;
+            while((entry = zis.getNextEntry()) != null) {
+                if(entry.getName().startsWith("Vernacular")) {
+                    continue; // Skip vernacular names file
+                }
+                File file = new File("/tmp/inaturalist", entry.getName());
+                if(entry.isDirectory()) {
+                    file.mkdirs();
+                } else {
+                    file.getParentFile().mkdirs();
+                    try(FileOutputStream fos = new FileOutputStream(file)) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+        }
+    }
+
 
     void worms() throws IOException {
         var unknownSpecies = Collections.synchronizedList(new ArrayList<String>());
-        List<String> speciesList = getAllSpeciesSciNAmes(root);
+        List<String> speciesList = getAllSpeciesSciNAmes(root, true);
         List<String> outputLines = Collections.synchronizedList(new ArrayList<>());
         AtomicInteger count = new AtomicInteger();
         var customPool = new ForkJoinPool(2);
@@ -986,7 +1114,9 @@ public class SpeciesTree {
 
         SpeciesTree speciesTree = new SpeciesTree();
         speciesTree.buildTaxonomy();
-        speciesTree.addAphiaIDB();
+        System.out.println();
+        speciesTree.addAphiaIDB(true);
+        speciesTree.addInaturalistIDs();
         // speciesTree.printTree(speciesTree.root, "");
 
         System.out.println();
@@ -1014,7 +1144,7 @@ public class SpeciesTree {
         }
 
         speciesTree.worms();
-
+        speciesTree.iNaturalist();
 
     }
 
