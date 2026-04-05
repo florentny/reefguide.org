@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -846,7 +847,8 @@ public class SpeciesTree {
     }
 
     void addInaturalistIDs() throws Exception {
-        try(BufferedReader br = new BufferedReader(new FileReader("inaturalist.txt"))) {
+        try(InputStream is = SpeciesTree.class.getResourceAsStream("inaturalist.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(is)))) {
             String line;
             while((line = br.readLine()) != null) {
                 String[] fields = line.split(",");
@@ -867,8 +869,8 @@ public class SpeciesTree {
     }
 
     void addAphiaIDB(boolean compare) throws Exception {
-
-        try(BufferedReader br = new BufferedReader(new FileReader("worms.txt"))) {
+        try(InputStream is = SpeciesTree.class.getResourceAsStream("worms.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(is)))) {
             String line;
             while((line = br.readLine()) != null) {
                 String[] fields = line.split("\t");

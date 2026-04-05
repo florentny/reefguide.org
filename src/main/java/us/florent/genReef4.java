@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1651,24 +1653,11 @@ public class genReef4 {
     }
 
     static protected boolean compareToFile(String fileString, String fileName) {
-
-        int c1;
-        int i = 0;
-        try(java.io.BufferedInputStream bis = new java.io.BufferedInputStream(new FileInputStream(fileName))) {
-
-            while((c1 = bis.read()) != -1) {
-                if(fileString.length() == i) {
-                    return false;
-                }
-                int c2 = fileString.codePointAt(i++);
-                if(c1 != c2) {
-                    return false;
-                }
-            }
-
-            return fileString.length() == i;
-
-        } catch(IOException exp) {
+        String fileContent = null;
+        try {
+            fileContent = Files.readString(Paths.get(fileName));
+            return fileContent.equals(fileString);
+        } catch(IOException e) {
             return false;
         }
     }
