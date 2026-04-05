@@ -160,7 +160,7 @@ class SpeciesTreeTest {
 
     @Test
     void testGetAllSpeciesSciNAmes() {
-        List<String> names = tree.getAllSpeciesSciNAmes(tree.depthFirstSearch("Biota"));
+        List<String> names = tree.getAllSpeciesSciNAmes(tree.depthFirstSearch("Biota"), false);
         assertTrue(names.contains("Abudefduf saxatilis"));
     }
 
