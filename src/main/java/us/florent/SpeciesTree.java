@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -826,9 +827,31 @@ public class SpeciesTree {
         return count;
     }
 
+    void addInaturalistIDs() throws Exception {
+        try(InputStream is = SpeciesTree.class.getResourceAsStream("inaturalist.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(is)))) {
+            String line;
+            while((line = br.readLine()) != null) {
+                String[] fields = line.split(",");
+                SpeciesNode sp = speciesMap.get(fields[0].trim());
+                if(sp == null) {
+                    System.out.println("iNaturalist - Species not found: " + fields[0]);
+                    continue;
+                }
+                sp.iNaturalistID = Integer.parseInt(fields[1].trim());
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     void addAphiaIDB() throws Exception {
-        System.out.println();
-        try(BufferedReader br = new BufferedReader(new FileReader("worms.txt"))) {
+        addAphiaIDB(false);
+    }
+
+    void addAphiaIDB(boolean compare) throws Exception {
+        try(InputStream is = SpeciesTree.class.getResourceAsStream("worms.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(is)))) {
             String line;
             while((line = br.readLine()) != null) {
                 String[] fields = line.split("\t");
