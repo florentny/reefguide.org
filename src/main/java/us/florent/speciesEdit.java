@@ -7,7 +7,7 @@ package us.florent;
 import com.mongodb.client.model.ReplaceOptions;
 import org.bson.Document;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +40,7 @@ public class speciesEdit extends javax.swing.JFrame {
 
     private int row = 0;
 
-    class RowRenderer extends javax.swing.table.DefaultTableCellRenderer {
+    static class RowRenderer extends javax.swing.table.DefaultTableCellRenderer {
 
         final Color color = new Color(247, 245, 213);
         String head = null;
@@ -58,11 +58,11 @@ public class speciesEdit extends javax.swing.JFrame {
         }
     }
 
-    class CustomTableModel extends DefaultTableModel {
+    static class CustomTableModel extends DefaultTableModel {
 
         String[] hearders = new String[]{"Thumb", "Location", "Type", "Depth", "Comment"};
         Class[] types = new Class[]{
-                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class};
+                Integer.class, String.class, String.class, Integer.class, String.class};
         boolean[] canEdit = new boolean[]{true, true, true, true, true};
 
         CustomTableModel() {
@@ -91,6 +91,7 @@ public class speciesEdit extends javax.swing.JFrame {
         Logger mongoLogger = Logger.getLogger( "org.mongodb.driver" );
         mongoLogger.setLevel(Level.SEVERE);
         initComponents();
+        setTitle("Reef Species Editor");
         initDB();
         populateTable(null);
         setLocationRelativeTo(null);
@@ -250,8 +251,8 @@ public class speciesEdit extends javax.swing.JFrame {
 
         jLabel3.setText("Sci. Name");
 
-        jComboBox1.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBox1.setFont(new java.awt.Font("Dialog", Font.PLAIN, 10)); // NOI18N
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jComboBox1.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 jComboBox1ItemStateChanged(evt);
@@ -569,6 +570,12 @@ public class speciesEdit extends javax.swing.JFrame {
             return;
         }
 
+        if(!validateIDField()) {
+            JOptionPane.showMessageDialog(null, "Invalid ID format. ID must be a single string starting with a lowercase letter",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         //int ok = JOptionPane.showConfirmDialog(null, "Save species?" , "Save trade", JOptionPane.OK_CANCEL_OPTION);
 
         //if(ok == 2)
@@ -700,7 +707,7 @@ public class speciesEdit extends javax.swing.JFrame {
     }
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        String[] list = db.species_collection.getAllSpecies().stream().map(s->s.id()).sorted().collect(Collectors.toList()).toArray(new String[0]);
+        String[] list = db.species_collection.getAllSpecies().stream().map(genReef4.Species::id).sorted().toList().toArray(new String[0]);
         String sel = ListDialog.showDialog(rootPane, rootPane, list, IDTextField.getText());
         if(sel == null) {
             return;
@@ -719,6 +726,8 @@ public class speciesEdit extends javax.swing.JFrame {
         jMenuNewActionPerformed(null);
         node = getNode(sel);
         IDTextField.setText(sel);
+        if(node == null)
+            return;
         NameTextField.setText(node.name());
         jComboBox1.setSelectedItem("");
         sciTextField.setText(node.sciName());
@@ -732,7 +741,7 @@ public class speciesEdit extends javax.swing.JFrame {
         if((node.dispNames() == null) || node.dispNames().isEmpty()) {
             disp1TextField.setText("");
         } else {
-            disp1TextField.setText(node.dispNames().get(0));
+            disp1TextField.setText(node.dispNames().getFirst());
         }
 
         if(node.dispNames() != null && node.dispNames().size() >= 2) {
@@ -745,12 +754,12 @@ public class speciesEdit extends javax.swing.JFrame {
         }
         else
             disp3TextField.setText("");
-        thumbTextField.setText((node.thumbs().size() >= 1) ? node.thumbs().get(0).toString() : "");
+        thumbTextField.setText((!node.thumbs().isEmpty()) ? node.thumbs().get(0).toString() : "");
         thumb2TextField.setText((node.thumbs().size() >= 2) ? node.thumbs().get(1).toString() : "");
         thumb3TextField.setText((node.thumbs().size() >= 3) ? node.thumbs().get(2).toString() : "");
         akaTextField.setText(node.aka());
         asnTextField.setText(node.synonyms());
-        distTextField.setText(node.dist().stream().collect(Collectors.joining(",")));
+        distTextField.setText(String.join(",", node.dist()));
 
         //distTextField.setText("DistRAW");
         if(node.endemic())
@@ -787,9 +796,9 @@ public class speciesEdit extends javax.swing.JFrame {
         tc.setPreferredWidth(130);
         tc.setMaxWidth(130);
 
-        JComboBox com = new JComboBox<>(locations.toArray());
+        var com = new JComboBox<>(locations.toArray());
         jTable1.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(com));
-        JComboBox com2 = new JComboBox<>(types.toArray());
+        var com2 = new JComboBox<>(types.toArray());
         jTable1.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(com2));
 
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -862,7 +871,7 @@ public class speciesEdit extends javax.swing.JFrame {
         var ret = distDialog.showDialog(rootPane, rootPane, null, null, possibleValues, new ArrayList<>(Arrays.asList(initialValues)));
         if(ret == null)
             return;
-        distTextField.setText(ret.stream().collect(Collectors.joining(",")));
+        distTextField.setText(String.join(",", ret));
         if(node != null) {
             node.dist().removeAll(node.dist());
             node.dist().addAll(ret);
@@ -915,6 +924,40 @@ public class speciesEdit extends javax.swing.JFrame {
 
     private void IDTextFieldFocusLost(java.awt.event.FocusEvent evt) {
         IDTextFieldActionPerformed(null);
+    }
+
+    private boolean validateIDField() {
+        String id = IDTextField.getText().trim();
+        // Check if empty
+        if(id.isEmpty()) {
+            IDTextField.setBackground(Color.WHITE);
+            return true;
+        }
+
+        // Check if starts with lowercase letter
+        if(!Character.isLowerCase(id.charAt(0))) {
+            IDTextField.setBackground(new Color(255, 200, 200)); // Light red background
+            JOptionPane.showMessageDialog(this,
+                "ID must start with a lowercase letter",
+                "Invalid ID",
+                JOptionPane.WARNING_MESSAGE);
+            IDTextField.requestFocus();
+            return false;
+        }
+
+        // Check if contains spaces (not a single string)
+        if(id.contains(" ")) {
+            IDTextField.setBackground(new Color(255, 200, 200)); // Light red background
+            JOptionPane.showMessageDialog(this,
+                "ID must be a single string (no spaces allowed)",
+                "Invalid ID",
+                JOptionPane.WARNING_MESSAGE);
+            IDTextField.requestFocus();
+            return false;
+        }
+
+        IDTextField.setBackground(Color.WHITE);
+        return true;
     }
 
     private void jTable1MousePressed(java.awt.event.MouseEvent evt) {

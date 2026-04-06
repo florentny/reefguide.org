@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'us.florent'
-version = '4.1'
+version = '4.2'
 
 repositories {
     mavenCentral()
