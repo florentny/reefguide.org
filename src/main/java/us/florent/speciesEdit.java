@@ -707,7 +707,11 @@ public class speciesEdit extends javax.swing.JFrame {
     }
 
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        String[] list = db.species_collection.getAllSpecies().stream().map(genReef4.Species::id).sorted().toList().toArray(new String[0]);
+        ListDialog.SpeciesInfo[] list = db.species_collection.getAllSpecies()
+            .stream()
+            .map(s -> new ListDialog.SpeciesInfo(s.id(), s.name(), s.sciName()))
+            .sorted((a, b) -> a.id.compareTo(b.id))
+            .toArray(ListDialog.SpeciesInfo[]::new);
         String sel = ListDialog.showDialog(rootPane, rootPane, list, IDTextField.getText());
         if(sel == null) {
             return;
