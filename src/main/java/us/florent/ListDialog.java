@@ -1,7 +1,10 @@
 package us.florent;
 
 import java.awt.Component;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -11,6 +14,24 @@ public class ListDialog extends javax.swing.JDialog {
 
     private static String value = "";
     private static ListDialog dialog;
+    private Object[] allPossibleValues;
+
+    public static class SpeciesInfo {
+        public final String id;
+        public final String name;
+        public final String sciName;
+
+        public SpeciesInfo(String id, String name, String sciName) {
+            this.id = id;
+            this.name = name;
+            this.sciName = sciName;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s - %s (%s)", id, name, sciName);
+        }
+    }
 
     public ListDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -24,8 +45,36 @@ public class ListDialog extends javax.swing.JDialog {
         java.awt.Frame frame = JOptionPane.getFrameForComponent(frameComp);
 
         dialog = new ListDialog(frame, true);
+        dialog.allPossibleValues = possibleValues;
         dialog.jList1.setListData(possibleValues);
         dialog.jList1.setSelectedValue(initialValue, true);
+        dialog.searchTextField.setText("");
+        ListDialog.value = initialValue;
+        dialog.setLocationRelativeTo(locationComp);
+        dialog.setVisible(true);
+        return value;
+    }
+
+    public static String showDialog(Component frameComp,
+                                    Component locationComp,
+                                    Object[] possibleValues,
+                                    String initialValue) {
+        java.awt.Frame frame = JOptionPane.getFrameForComponent(frameComp);
+
+        dialog = new ListDialog(frame, true);
+        dialog.allPossibleValues = possibleValues;
+        dialog.jList1.setListData(possibleValues);
+        if (possibleValues != null && possibleValues.length > 0) {
+            for (Object item : possibleValues) {
+                if (item instanceof SpeciesInfo) {
+                    if (((SpeciesInfo) item).id.equals(initialValue)) {
+                        dialog.jList1.setSelectedValue(item, true);
+                        break;
+                    }
+                }
+            }
+        }
+        dialog.searchTextField.setText("");
         ListDialog.value = initialValue;
         dialog.setLocationRelativeTo(locationComp);
         dialog.setVisible(true);
@@ -44,12 +93,34 @@ public class ListDialog extends javax.swing.JDialog {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<String>();
+        jList1 = new javax.swing.JList<>();
         jPanel1 = new javax.swing.JPanel();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        searchTextField = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Species List");
+
+        jLabel1.setText("Search:");
+
+        searchTextField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filterList();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filterList();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filterList();
+            }
+        });
 
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -90,12 +161,23 @@ public class ListDialog extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(searchTextField)
+                                .addContainerGap())
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel1)
+                                        .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -111,7 +193,12 @@ public class ListDialog extends javax.swing.JDialog {
     }
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        value = (String)(jList1.getSelectedValue());
+        Object selected = jList1.getSelectedValue();
+        if (selected instanceof SpeciesInfo) {
+            value = ((SpeciesInfo) selected).id;
+        } else {
+            value = (String) selected;
+        }
         dialog.setVisible(false);
     }
 
@@ -121,19 +208,50 @@ public class ListDialog extends javax.swing.JDialog {
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {
         if(evt.getClickCount() == 2) {
-            value = (String)(jList1.getSelectedValue());
+            Object selected = jList1.getSelectedValue();
+            if (selected instanceof SpeciesInfo) {
+                value = ((SpeciesInfo) selected).id;
+            } else {
+                value = (String) selected;
+            }
             dialog.setVisible(false);
         }
+    }
+
+    private void filterList() {
+        String searchText = searchTextField.getText().toLowerCase();
+        DefaultListModel<Object> model = new DefaultListModel<>();
+
+        if (allPossibleValues != null) {
+            for (Object item : allPossibleValues) {
+                boolean matches = false;
+                if (item instanceof SpeciesInfo) {
+                    SpeciesInfo info = (SpeciesInfo) item;
+                    matches = info.id.toLowerCase().contains(searchText) ||
+                              info.name.toLowerCase().contains(searchText) ||
+                              info.sciName.toLowerCase().contains(searchText);
+                } else if (item instanceof String) {
+                    matches = ((String) item).toLowerCase().contains(searchText);
+                }
+                if (matches) {
+                    model.addElement(item);
+                }
+            }
+        }
+
+        jList1.setModel(model);
     }
 
 
 
     // Variables declaration - do not modify
     private javax.swing.JButton cancelButton;
-    private javax.swing.JList<String> jList1;
+    private javax.swing.JList jList1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton okButton;
+    private javax.swing.JTextField searchTextField;
     // End of variables declaration
 
 }

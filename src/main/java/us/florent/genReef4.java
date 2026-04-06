@@ -659,11 +659,31 @@ public class genReef4 {
             outString.append("<guid isPermaLink=\"true\">").append(itemUrl).append("</guid>");
             outString.append("<description><![CDATA[");
             outString.append("<img src=\"https://reefguide.org/pix/thumb3/").append(sp.id).append(sp.thumbs.getFirst()).append(".jpg\" /><br />");
-            outString.append(sp.name).append(" (").append(sp.fullSciName()).append(")<br />");
-            outString.append("Category: ").append(species_collection.getCat(sp.id)).append("<br />");
-            outString.append("Size: ").append(sp.size).append("<br />");
-            outString.append("Depth: ").append(sp.depth).append("<br />");
-            outString.append("Distribution: ").append(String.join(", ", sp.dist));
+            outString.append(sp.name).append("<br />");
+            if(sp.fullSciName() != null && !sp.fullSciName().isEmpty())
+                outString.append("Scientific Name: <i>").append(sp.fullSciName()).append("</i><br />\n");
+            var taxon = speciesTree.getPathToSpecies(sp.id);
+            taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Order")).findFirst().ifPresent(t -> {
+                outString.append("Order: <i>").append(t.getName()).append("</i>");
+                if(t.getCategory() != null) {
+                    outString.append(" (").append(t.getCategory()).append(")");
+                }
+                outString.append("<br />\n");
+            });
+            taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Family")).findFirst().filter(f -> !f.getName().equals("Unknown")).ifPresent(t -> {
+                outString.append("Family: <i>").append(t.getName()).append("</i>");
+                if(t.getCategory() != null) {
+                    outString.append(" (").append(t.getCategory()).append(")");
+                }
+                outString.append("<br />\n");
+            });
+
+            outString.append("Category: ").append(species_collection.getCat(sp.id)).append("<br />\n");
+            if(sp.size != null)
+                outString.append("Size: ").append(sp.size).append("<br />\n");
+            if(sp.depth != null)
+                outString.append("Depth: ").append(sp.depth).append("<br />\n");
+            outString.append("Distribution: ").append(String.join(", ", sp.dist)).append("<br />\n");
             outString.append("]]></description>");
             int idx = i.getAndIncrement();
             if(group.dates.get(idx) != null) {

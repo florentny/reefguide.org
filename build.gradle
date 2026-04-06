@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'us.florent'
-version = '4.1'
+version = '4.5'
 
 repositories {
     mavenCentral()
@@ -16,7 +16,7 @@ tasks.named('wrapper') {
 jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
-        attributes 'Main-Class': 'us.florent.genReef41'
+        attributes 'Main-Class': 'us.florent.genReef4'
     }
     from {
         configurations
