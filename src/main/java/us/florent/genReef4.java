@@ -1687,7 +1687,7 @@ public class genReef4 {
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
         //Thread.sleep(10000);
         genReef4 reef = new genReef4();
-        reef.basepathIndexAll = "/home/fc/web/reef4";
+        reef.basepathIndexAll = "/data5/reef41";
         if(args.length == 1) {
             reef.basepathIndexAll = args[0];
         }

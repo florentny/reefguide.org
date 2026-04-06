@@ -14,7 +14,24 @@ public class ListDialog extends javax.swing.JDialog {
 
     private static String value = "";
     private static ListDialog dialog;
-    private String[] allPossibleValues;
+    private Object[] allPossibleValues;
+
+    public static class SpeciesInfo {
+        public final String id;
+        public final String name;
+        public final String sciName;
+
+        public SpeciesInfo(String id, String name, String sciName) {
+            this.id = id;
+            this.name = name;
+            this.sciName = sciName;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s - %s (%s)", id, name, sciName);
+        }
+    }
 
     public ListDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -38,6 +55,32 @@ public class ListDialog extends javax.swing.JDialog {
         return value;
     }
 
+    public static String showDialog(Component frameComp,
+                                    Component locationComp,
+                                    Object[] possibleValues,
+                                    String initialValue) {
+        java.awt.Frame frame = JOptionPane.getFrameForComponent(frameComp);
+
+        dialog = new ListDialog(frame, true);
+        dialog.allPossibleValues = possibleValues;
+        dialog.jList1.setListData(possibleValues);
+        if (possibleValues != null && possibleValues.length > 0) {
+            for (Object item : possibleValues) {
+                if (item instanceof SpeciesInfo) {
+                    if (((SpeciesInfo) item).id.equals(initialValue)) {
+                        dialog.jList1.setSelectedValue(item, true);
+                        break;
+                    }
+                }
+            }
+        }
+        dialog.searchTextField.setText("");
+        ListDialog.value = initialValue;
+        dialog.setLocationRelativeTo(locationComp);
+        dialog.setVisible(true);
+        return value;
+    }
+
 
 
     /** This method is called from within the constructor to
@@ -50,7 +93,7 @@ public class ListDialog extends javax.swing.JDialog {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<String>();
+        jList1 = new javax.swing.JList<>();
         jPanel1 = new javax.swing.JPanel();
         okButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
@@ -124,8 +167,8 @@ public class ListDialog extends javax.swing.JDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(searchTextField)
                                 .addContainerGap())
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -150,7 +193,12 @@ public class ListDialog extends javax.swing.JDialog {
     }
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        value = (String)(jList1.getSelectedValue());
+        Object selected = jList1.getSelectedValue();
+        if (selected instanceof SpeciesInfo) {
+            value = ((SpeciesInfo) selected).id;
+        } else {
+            value = (String) selected;
+        }
         dialog.setVisible(false);
     }
 
@@ -160,18 +208,32 @@ public class ListDialog extends javax.swing.JDialog {
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {
         if(evt.getClickCount() == 2) {
-            value = (String)(jList1.getSelectedValue());
+            Object selected = jList1.getSelectedValue();
+            if (selected instanceof SpeciesInfo) {
+                value = ((SpeciesInfo) selected).id;
+            } else {
+                value = (String) selected;
+            }
             dialog.setVisible(false);
         }
     }
 
     private void filterList() {
         String searchText = searchTextField.getText().toLowerCase();
-        DefaultListModel<String> model = new DefaultListModel<>();
+        DefaultListModel<Object> model = new DefaultListModel<>();
 
         if (allPossibleValues != null) {
-            for (String item : allPossibleValues) {
-                if (item.toLowerCase().contains(searchText)) {
+            for (Object item : allPossibleValues) {
+                boolean matches = false;
+                if (item instanceof SpeciesInfo) {
+                    SpeciesInfo info = (SpeciesInfo) item;
+                    matches = info.id.toLowerCase().contains(searchText) ||
+                              info.name.toLowerCase().contains(searchText) ||
+                              info.sciName.toLowerCase().contains(searchText);
+                } else if (item instanceof String) {
+                    matches = ((String) item).toLowerCase().contains(searchText);
+                }
+                if (matches) {
                     model.addElement(item);
                 }
             }
@@ -184,7 +246,7 @@ public class ListDialog extends javax.swing.JDialog {
 
     // Variables declaration - do not modify
     private javax.swing.JButton cancelButton;
-    private javax.swing.JList<String> jList1;
+    private javax.swing.JList jList1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
