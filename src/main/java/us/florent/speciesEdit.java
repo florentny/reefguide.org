@@ -15,8 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -32,18 +30,17 @@ import javax.swing.table.DefaultTableModel;
  */
 public class speciesEdit extends javax.swing.JFrame {
 
-    private final genReef4 db = new genReef4();
+    private final GenReef4 db = new GenReef4();
     private List<String> dist_a;
     private List<String> locations;
     private List<String> types;
-    private genReef4.Species node;
+    private GenReef4.Species node;
 
     private int row = 0;
 
     static class RowRenderer extends javax.swing.table.DefaultTableCellRenderer {
 
         final Color color = new Color(247, 245, 213);
-        String head = null;
 
         @Override
         public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -113,16 +110,15 @@ public class speciesEdit extends javax.swing.JFrame {
 
         dist_a = db.species_collection.getAllSpecies().stream().flatMap(s -> s.dist().stream()).sorted().distinct().collect(Collectors.toList());
         node = null;
-        locations =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).map(genReef4.photo::location).sorted().distinct().collect(Collectors.toList());
+        locations =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).map(GenReef4.Photo::location).sorted().distinct().collect(Collectors.toList());
         locations.addFirst("Palm Beach, Florida");
-        types =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).filter(p -> p.type() != null).map(genReef4.photo::type).sorted().distinct().collect(Collectors.toList());
+        types =  db.species_collection.getAllSpecies().stream().flatMap(s -> s.photo().stream()).filter(p -> p.type() != null).map(GenReef4.Photo::type).sorted().distinct().collect(Collectors.toList());
         locations.addFirst("");
         types.addFirst("");
     }
 
     private void fillValues() {
-        Set<String> name = new TreeSet<>();
-        String[] list = db.species_collection.getAllSpecies().stream().map(genReef4.Species::genus).sorted().distinct().toList().toArray(new String[0]);
+        String[] list = db.species_collection.getAllSpecies().stream().map(GenReef4.Species::genus).sorted().distinct().toList().toArray(new String[0]);
 
         jComboBox1.setModel(new DefaultComboBoxModel<>(list));
 
@@ -576,15 +572,10 @@ public class speciesEdit extends javax.swing.JFrame {
             return;
         }
 
-        //int ok = JOptionPane.showConfirmDialog(null, "Save species?" , "Save trade", JOptionPane.OK_CANCEL_OPTION);
-
-        //if(ok == 2)
-          //  return;
-
         Document doc = new Document();
         doc.put("id", IDTextField.getText().trim());
         doc.put("Name", NameTextField.getText().trim());
-        //if(!sciTextField.getText().isBlank())
+        if(!sciTextField.getText().isBlank())
             doc.put("sciName", sciTextField.getText().trim());
         if(!sizeTextField.getText().isBlank())
             doc.put("size", sizeTextField.getText().trim());
@@ -656,6 +647,9 @@ public class speciesEdit extends javax.swing.JFrame {
         }
         if(rec != null && rec.getString("subgenus") != null) {
             doc.put("subgenus", rec.getString("subgenus"));
+        }
+        if(rec != null && rec.getString("taxoref") != null) {
+            doc.put("taxoref", rec.getString("taxoref"));
         }
 
         db.getMongoDB().getCollection("species").replaceOne(new Document("id", IDTextField.getText().trim()),
@@ -781,7 +775,7 @@ public class speciesEdit extends javax.swing.JFrame {
 
     }
 
-    final void populateTable(java.util.List<genReef4.photo> thumbList) {
+    final void populateTable(java.util.List<GenReef4.Photo> thumbList) {
         int colCount = jTable1.getColumnCount();
         javax.swing.table.TableColumn column;
         RowRenderer rowrend = new RowRenderer();
@@ -808,7 +802,7 @@ public class speciesEdit extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         int i = 0;
         if(thumbList != null) {
-            for(genReef4.photo tl : thumbList) {
+            for(GenReef4.Photo tl : thumbList) {
                 model.setValueAt(tl.id(), i, 0);
                 model.setValueAt(tl.location(), i, 1);
                 model.setValueAt(tl.type(), i, 2);
@@ -868,7 +862,7 @@ public class speciesEdit extends javax.swing.JFrame {
         } else {
             String[] sel = node.dist().toArray(String[]::new); //node.distributionRaw.split(",");
             for(String sel1 : sel) {
-                possibleValues.remove(sel1.trim());;
+                possibleValues.remove(sel1.trim());
             }
             initialValues = node.dist().toArray(String[]::new);
         }
@@ -981,8 +975,8 @@ public class speciesEdit extends javax.swing.JFrame {
         if(node.photo().size() <= row)
             return;
 
-        genReef4.photo up =  node.photo().get(row);
-        genReef4.photo down = node.photo().get(row - 1);
+        GenReef4.Photo up =  node.photo().get(row);
+        GenReef4.Photo down = node.photo().get(row - 1);
         node.photo().set(row, down);
         node.photo().set(row - 1, up);
         populateTable(node.photo());
@@ -992,7 +986,6 @@ public class speciesEdit extends javax.swing.JFrame {
 
     private void showPopup(java.awt.event.MouseEvent e) {
         if(e.isPopupTrigger()) {
-            final int col = jTable1.columnAtPoint(e.getPoint());
             final int l_row = jTable1.rowAtPoint(e.getPoint());
             this.row = l_row;
             System.out.println(l_row);
@@ -1001,11 +994,11 @@ public class speciesEdit extends javax.swing.JFrame {
     }
 
 
-    genReef4.Species getNode(String name) {
+    GenReef4.Species getNode(String name) {
         return db.species_collection.getSpecies(name);
     }
 
-    public static void main(String args[]) {
+    static void main(String[] args) {
 
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
 

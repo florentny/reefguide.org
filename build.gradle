@@ -12,7 +12,7 @@ repositories {
 jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
-        attributes 'Main-Class': 'us.florent.genReef4'
+        attributes 'Main-Class': 'us.florent.GenReef4'
     }
     from {
         configurations

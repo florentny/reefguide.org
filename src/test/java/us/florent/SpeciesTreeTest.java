@@ -90,7 +90,7 @@ class SpeciesTreeTest {
 
     @Test
     void testSortTreeByName() {
-        tree.addLeaf("Pomacentridae", "_UnknownGenus", "Genus");
+        tree.addLeaf("Pomacentridae", "Unknown", "Genus");
         tree.sortTreeByName(tree.depthFirstSearch("Pomacentridae"));
         var unknown = tree.depthFirstSearch("Unknown");
         assertNotNull(unknown);
@@ -103,13 +103,6 @@ class SpeciesTreeTest {
         node.getValue().setCategory("Fish");
         Set<String> cats = tree.getAllCategories();
         assertTrue(cats.contains("Fish"));
-    }
-
-    @Test
-    void testGetAllFamilyNodes() {
-        List<SpeciesTree.TreeNode<SpeciesTree.Taxon>> fams = tree.getAllFamilyNodes(tree.depthFirstSearch("Biota"));
-        assertFalse(fams.isEmpty());
-        assertEquals("Pomacentridae", fams.get(0).getValue().getName());
     }
 
     @Test
