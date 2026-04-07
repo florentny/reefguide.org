@@ -90,7 +90,7 @@ class SpeciesTreeTest {
 
     @Test
     void testSortTreeByName() {
-        tree.addLeaf("Pomacentridae", "_UnknownGenus", "Genus");
+        tree.addLeaf("Pomacentridae", "Unknown", "Genus");
         tree.sortTreeByName(tree.depthFirstSearch("Pomacentridae"));
         var unknown = tree.depthFirstSearch("Unknown");
         assertNotNull(unknown);
