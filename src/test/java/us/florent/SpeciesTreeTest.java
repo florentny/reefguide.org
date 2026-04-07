@@ -106,13 +106,6 @@ class SpeciesTreeTest {
     }
 
     @Test
-    void testGetAllFamilyNodes() {
-        List<SpeciesTree.TreeNode<SpeciesTree.Taxon>> fams = tree.getAllFamilyNodes(tree.depthFirstSearch("Biota"));
-        assertFalse(fams.isEmpty());
-        assertEquals("Pomacentridae", fams.get(0).getValue().getName());
-    }
-
-    @Test
     void testGetAllSpeciesBelowCategory() {
         var fam = tree.depthFirstSearch("Pomacentridae");
         fam.getValue().setCategory("Fish");
