@@ -1,10 +1,16 @@
 'use strict';
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
+
+    const PRE_EXPAND_RANKS = ['domain', 'kingdom', 'subkingdom', 'infrakingdom', 'superphylum', 'superdivision'];
+
+    function shouldPreExpand(node) {
+        return node.rank && PRE_EXPAND_RANKS.indexOf(node.rank.toLowerCase()) !== -1;
+    }
 
     function countSpecies(node) {
-        var count = node.species ? node.species.length : 0;
+        let count = node.species ? node.species.length : 0;
         if (node.children) {
             node.children.forEach(function(child) {
                 count += countSpecies(child);
@@ -14,37 +20,62 @@
     }
 
     function TaxonomyNode(props) {
-        var node = props.node;
-        var depth = props.depth;
-        var selectedName = props.selectedName;
-        var onSelect = props.onSelect;
+        const node = props.node;
+        const depth = props.depth;
+        const selectedName = props.selectedName;
+        const onSelect = props.onSelect;
+        const autoExpand = props.autoExpand;
+        const expandPath = props.expandPath;
 
-        var expandedState = React.useState(false);
-        var expanded = expandedState[0];
-        var setExpanded = expandedState[1];
+        const expandedState = React.useState(function() { return shouldPreExpand(node); });
+        const expanded = expandedState[0];
+        const setExpanded = expandedState[1];
 
-        var hasChildren = node.children && node.children.length > 0;
-        var hasSpecies = node.species && node.species.length > 0;
-        var speciesCount = countSpecies(node);
-        var isSelected = selectedName && selectedName === node.name;
+        // Tracks whether this node was expanded by user action (vs pre-expansion).
+        // autoExpand propagation only chains through nodes the user has expanded.
+        const userExpandedState = React.useState(false);
+        const userExpanded = userExpandedState[0];
+        const setUserExpanded = userExpandedState[1];
 
-        var indent = { paddingLeft: (depth * 10) + 'px' };
+        React.useEffect(function() {
+            if (autoExpand) {
+                setExpanded(true);
+                setUserExpanded(true);
+            }
+        }, [autoExpand]);
+
+        React.useEffect(function() {
+            if (expandPath && expandPath[node.name]) setExpanded(true);
+        }, [expandPath]);
+
+        const hasChildren = node.children && node.children.length > 0;
+        const hasSpecies = node.species && node.species.length > 0;
+        const speciesCount = countSpecies(node);
+        const isSelected = selectedName && selectedName === node.name;
+        const singleChild = (node.children || []).length === 1 && !(node.species && node.species.length > 0);
+
+        const indent = { paddingLeft: (depth * 10) + 'px' };
 
         function handleToggle(ev) {
             ev.stopPropagation();
+            setUserExpanded(true);
             setExpanded(!expanded);
         }
 
         function handleSelect(ev) {
             ev.stopPropagation();
+            if (hasChildren || hasSpecies) {
+                setExpanded(true);
+                setUserExpanded(true);
+            }
             onSelect(node);
         }
 
-        var toggleSymbol = (hasChildren || hasSpecies)
+        const toggleSymbol = (hasChildren || hasSpecies)
             ? (expanded ? '\u25be' : '\u25b8')
             : '\u00a0';
 
-        var rowClass = 'taxon-row' + (isSelected ? ' taxon-selected' : '');
+        const rowClass = 'taxon-row' + (isSelected ? ' taxon-selected' : '');
 
         return e('div', null,
             e('div', { className: rowClass, style: indent },
@@ -54,7 +85,8 @@
                 }, toggleSymbol),
                 e('span', { onClick: handleSelect },
                     e('span', { className: 'taxon-rank' }, node.rank + '\u00a0'),
-                    node.name,
+                    e('span', { className: 'taxon-name' }, node.name),
+                    node.category ? e('span', { className: 'taxon-category' }, '\u00a0\u2013\u00a0' + node.category) : null,
                     e('span', { className: 'taxon-count' }, '\u00a0(' + speciesCount + ')')
                 )
             ),
@@ -65,35 +97,39 @@
                         node: child,
                         depth: depth + 1,
                         selectedName: selectedName,
-                        onSelect: onSelect
+                        onSelect: onSelect,
+                        autoExpand: singleChild && userExpanded,
+                        expandPath: expandPath
                     });
                 }),
                 (node.species || []).map(function(sp, i) {
-                    var spIsSelected = selectedName === sp.id;
                     return e('div', {
                         key: 'sp-' + i,
                         style: { paddingLeft: ((depth + 1) * 10) + 'px' },
-                        className: 'taxon-species-item' + (spIsSelected ? ' taxon-selected' : ''),
-                        onClick: function() {
-                            onSelect({ name: sp.id, rank: 'Species', species: [sp], children: [] });
-                        }
-                    }, '\u2022\u00a0' + sp.name + ' (' + sp.sname + ')');
+                        className: 'taxon-species-item',
+                        onClick: function(ev) { ev.stopPropagation(); onSelect(node); }
+                    }, (function() {
+                        const parts = (sp.sname || '').split(' ');
+                        const abbrev = parts.length > 1 ? parts[0][0] + '.\u00a0' + parts.slice(1).join(' ') : sp.sname;
+                        return '\u2022\u00a0' + abbrev + (sp.name ? '\u00a0(' + sp.name + ')' : '');
+                    })());
                 })
             ) : null
         );
     }
 
     function TaxonomyTree(props) {
-        var data = props.data;
-        var selectedName = props.selectedName;
-        var onSelect = props.onSelect;
+        const data = props.data;
+        const selectedName = props.selectedName;
+        const onSelect = props.onSelect;
+        const expandPath = props.expandPath;
 
         if (!data) {
             return e('div', { style: { padding: '8px', color: '#888', fontStyle: 'italic' } }, 'Loading\u2026');
         }
 
         // Skip the root node (Biota/Domain), render its children directly
-        var topNodes = data.children && data.children.length > 0 ? data.children : [data];
+        const topNodes = data.children && data.children.length > 0 ? data.children : [data];
 
         return e('div', { className: 'taxonomy-tree' },
             topNodes.map(function(node, i) {
@@ -102,7 +138,8 @@
                     node: node,
                     depth: 0,
                     selectedName: selectedName,
-                    onSelect: onSelect
+                    onSelect: onSelect,
+                    expandPath: expandPath
                 });
             })
         );

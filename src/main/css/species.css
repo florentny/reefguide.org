@@ -164,6 +164,16 @@ div.worms a:hover {
     white-space: nowrap;
 }
 
+.taxonlink, .taxonlink:visited {
+    color: black;
+    text-decoration: none;
+}
+
+.taxonlink:hover {
+    color: #1c94c4;
+    text-decoration: underline;
+}
+
 .sntitle2 {
     color: black;
     font-size: 12px;

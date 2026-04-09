@@ -793,6 +793,61 @@ public class SpeciesTree {
     }
 
 
+    private List<TreeNode<Taxon>> getPathToNode(TreeNode<Taxon> target) {
+        List<TreeNode<Taxon>> path = new ArrayList<>();
+        if (findPathToNodeHelper(root, target, path)) {
+            return path;
+        }
+        return Collections.emptyList();
+    }
+
+    private boolean findPathToNodeHelper(TreeNode<Taxon> current, TreeNode<Taxon> target, List<TreeNode<Taxon>> path) {
+        path.add(current);
+        if(current == target) {
+            return true;
+        }
+        for(TreeNode<Taxon> child : current.getChildren()) {
+            if(findPathToNodeHelper(child, target, path)) {
+                return true;
+            }
+        }
+        path.removeLast();
+        return false;
+    }
+
+    public TreeNode<Taxon> findLowestCommonAncestor(List<TreeNode<Taxon>> nodes) {
+        if(nodes == null || nodes.isEmpty()) return null;
+        if(nodes.size() == 1) return nodes.get(0);
+
+        List<List<TreeNode<Taxon>>> paths = new ArrayList<>();
+        for(TreeNode<Taxon> node : nodes) {
+            List<TreeNode<Taxon>> path = getPathToNode(node);
+            if(path.isEmpty()) return null; // node not found
+            paths.add(path);
+        }
+
+        // Find common prefix
+        int minLen = paths.stream().mapToInt(List::size).min().orElse(0);
+        TreeNode<Taxon> lca = null;
+        for(int i = 0; i < minLen; i++) {
+            TreeNode<Taxon> current = paths.get(0).get(i);
+            boolean allSame = true;
+            for(List<TreeNode<Taxon>> path : paths) {
+                if(path.get(i) != current) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if(allSame) {
+                lca = current;
+            } else {
+                break;
+            }
+        }
+        return lca;
+    }
+
+
     public List<String> getAllSpeciesSciNAmes(TreeNode<Taxon> node, boolean includeSubgenus) {
         List<String> leaves = new ArrayList<>();
         if(node.getChildren().isEmpty()) {
