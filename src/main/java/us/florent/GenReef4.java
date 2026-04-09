@@ -377,7 +377,8 @@ public class GenReef4 {
     protected MongoDatabase getMongoDB() {
 
         if(db == null) {
-            mongoClient = MongoClients.create();
+            String mongoUri = System.getenv("MONGODB_URI");
+            mongoClient = mongoUri != null ? MongoClients.create(mongoUri) : MongoClients.create();
 
             db = mongoClient.getDatabase("reef4");
 

@@ -664,7 +664,8 @@ public class SpeciesTree {
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
 
         MongoDatabase db;
-        MongoClient mongoClient = MongoClients.create();
+        String mongoUri = System.getenv("MONGODB_URI");
+        MongoClient mongoClient = mongoUri != null ? MongoClients.create(mongoUri) : MongoClients.create();
         db = mongoClient.getDatabase("reef4");
 
         createTree(db);
