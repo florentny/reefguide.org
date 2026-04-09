@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -585,6 +588,7 @@ public class GenReef4 {
             genIndexFile(baseIndex, latestGroup, reefRef, headers[0]);
             genRSS(latestGroup, baseIndex);
             updateSearchJson(reefRef, baseIndex);
+            exportTaxonomyJson(reefRef, baseIndex);
             copyFile(baseIndex + "/index1.html", baseIndex + "/index.html");
 
         } catch(IOException ex) {
@@ -627,6 +631,50 @@ public class GenReef4 {
         writer.flush();
         String json = writer.toString();
         writeToFile(json, basepathIndexAll + "/species_region_" + region + ".json");
+    }
+
+    private void exportTaxonomyJson(int region, String baseIndex) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Set<String> regionIds = species_collection.getAllSpecies().stream()
+                .map(Species::id)
+                .collect(Collectors.toSet());
+        ObjectNode root = buildTaxonomyJsonNode(mapper, speciesTree.depthFirstSearch("Biota"), regionIds);
+        if (root != null) {
+            writeToFile(mapper.writeValueAsString(root), basepathIndexAll + "/taxonomy_region_" + region + ".json");
+        }
+    }
+
+    private ObjectNode buildTaxonomyJsonNode(ObjectMapper mapper, SpeciesTree.TreeNode<SpeciesTree.Taxon> node, Set<String> regionIds) {
+        ArrayNode speciesArr = mapper.createArrayNode();
+        ArrayNode childrenArr = mapper.createArrayNode();
+
+        for (SpeciesTree.TreeNode<SpeciesTree.Taxon> child : node.getChildren()) {
+            if (child.getValue() instanceof SpeciesTree.SpeciesNode sn) {
+                if (regionIds.contains(sn.getId())) {
+                    Species sp = species_collection.getSpecies(sn.getId());
+                    if (sp != null) {
+                        ObjectNode spNode = mapper.createObjectNode();
+                        spNode.put("id", sp.id());
+                        spNode.put("name", sp.name());
+                        spNode.put("sname", sp.sciName());
+                        spNode.put("thumb", sp.thumbs().getFirst());
+                        speciesArr.add(spNode);
+                    }
+                }
+            } else {
+                ObjectNode childNode = buildTaxonomyJsonNode(mapper, child, regionIds);
+                if (childNode != null) childrenArr.add(childNode);
+            }
+        }
+
+        if (speciesArr.isEmpty() && childrenArr.isEmpty()) return null;
+
+        ObjectNode obj = mapper.createObjectNode();
+        obj.put("name", node.getValue().getName());
+        obj.put("rank", node.getValue().getRank());
+        obj.set("children", childrenArr);
+        obj.set("species", speciesArr);
+        return obj;
     }
 
     private String getSpNull(String s) {
