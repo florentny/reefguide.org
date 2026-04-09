@@ -9,12 +9,129 @@ function renderNav() {
     }
 }
 
+var _taxGridRoot = null;
+
+function collectAllSpecies(node) {
+    var result = (node.species || []).slice();
+    (node.children || []).forEach(function(c) {
+        result = result.concat(collectAllSpecies(c));
+    });
+    return result;
+}
+
+function renderTaxonomyGrid(species, title) {
+    var el = document.getElementById('taxonomy-grid-root');
+    if (!el || !window.TaxonomyGrid) return;
+    if (!_taxGridRoot) _taxGridRoot = ReactDOM.createRoot(el);
+    _taxGridRoot.render(React.createElement(TaxonomyGrid, { species: species, title: title }));
+}
+
+(function() {
+    var e = React.createElement;
+
+    function SidebarWrapper(props) {
+        var treeMenuData = props.treeMenuData;
+
+        var modeState = React.useState('categories');
+        var viewMode = modeState[0];
+        var setViewMode = modeState[1];
+
+        var taxDataState = React.useState(null);
+        var taxonomyData = taxDataState[0];
+        var setTaxonomyData = taxDataState[1];
+
+        var selectedState = React.useState(null);
+        var selectedName = selectedState[0];
+        var setSelectedName = selectedState[1];
+
+        // Expand/shrink the left column to fit tree content in taxonomy mode
+        React.useEffect(function() {
+            var leftCol = document.getElementById('leftcolumn');
+            var contentCol = document.getElementById('contentcolumn');
+            if (!leftCol || !contentCol) return;
+
+            if (viewMode !== 'taxonomy') {
+                leftCol.style.width = '';
+                leftCol.style.maxWidth = '';
+                contentCol.style.marginLeft = '';
+                if (typeof panelOffset !== 'undefined') panelOffset = 200;
+                return;
+            }
+
+            leftCol.style.width = 'max-content';
+            leftCol.style.maxWidth = '45vw';
+
+            function syncWidth() {
+                var w = leftCol.offsetWidth;
+                contentCol.style.marginLeft = w + 'px';
+                if (typeof panelOffset !== 'undefined') panelOffset = w;
+                // Let TaxonomyGrid re-calculate columns
+                window.dispatchEvent(new Event('resize'));
+            }
+
+            var ro = new ResizeObserver(syncWidth);
+            ro.observe(leftCol);
+            syncWidth();
+
+            return function() { ro.disconnect(); };
+        }, [viewMode]);
+
+        function switchMode(mode) {
+            setViewMode(mode);
+            var topTable = document.getElementById('TopTable');
+            var taxGrid = document.getElementById('taxonomy-grid-root');
+            if (mode === 'taxonomy') {
+                if (topTable) topTable.style.display = 'none';
+                if (taxGrid) taxGrid.style.display = 'block';
+                if (!taxonomyData && typeof reefRef !== 'undefined') {
+                    fetch('/taxonomy_region_' + reefRef + '.json')
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) { setTaxonomyData(data); });
+                }
+                renderTaxonomyGrid([], null);
+            } else {
+                if (topTable) topTable.style.display = '';
+                if (taxGrid) taxGrid.style.display = 'none';
+                setSelectedName(null);
+            }
+        }
+
+        function handleNodeSelect(node) {
+            setSelectedName(node.name);
+            var species = collectAllSpecies(node);
+            var label = node.rank ? node.name + ' (' + node.rank + ')' : node.name;
+            renderTaxonomyGrid(species, label);
+        }
+
+        return e(React.Fragment, null,
+            e('div', { className: 'view-toggle' },
+                e('button', {
+                    className: 'toggle-btn' + (viewMode === 'categories' ? ' active' : ''),
+                    onClick: function() { switchMode('categories'); }
+                }, 'Categories'),
+                e('button', {
+                    className: 'toggle-btn' + (viewMode === 'taxonomy' ? ' active' : ''),
+                    onClick: function() { switchMode('taxonomy'); }
+                }, 'Taxonomy')
+            ),
+            viewMode === 'categories'
+                ? e(AccordionMenu, { data: treeMenuData })
+                : e(TaxonomyTree, {
+                    data: taxonomyData,
+                    selectedName: selectedName,
+                    onSelect: handleNodeSelect
+                })
+        );
+    }
+
+    window.SidebarWrapper = SidebarWrapper;
+})();
+
 function renderAccordion() {
     var accRoot = document.getElementById('accordion-root');
     if (accRoot && window.AccordionMenu && window.treeMenuData) {
-        var root = ReactDOM.createRoot(accRoot);
-        root.render(
-            React.createElement(AccordionMenu, { data: window.treeMenuData })
+        ReactDOM.createRoot(accRoot).render(
+            React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData })
         );
     }
 }
