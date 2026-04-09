@@ -208,8 +208,8 @@ public class GenReef4 {
     protected java.util.ArrayList<Page> pageList = new java.util.ArrayList<>();
 
     //final String[] reefId = {"all", "carib", "indopac", "hawaii", "keys", "baja"};
-    final String[] reefName = {"Tropical Reefs", "Caribbean Reefs", "Tropical Pacific Reefs", "South Florida Reefs", "Hawaii Reefs", "Eastern Pacific Reefs", "French Polynesia"};
-    final String[] preReefName = {"", "Florida, Bahamas &", "", "", "", "", ""};
+    final String[] reefName = {"Tropical Reefs", "Caribbean Reefs", "Indo-Pacific Reefs", "South Florida Reefs", "Hawaiian Reefs", "Eastern Pacific Reefs", "French Polynesian Reefs"};
+    final String[] preReefName = {"", "Florida, Bahamas and", "Hawaiian, South Pacific and", "", "", "", ""};
     final String[] reefMenu = {"Worldwide", "Caribbean", "Pacific", "South Florida", "Hawaii", "Eastern Pacific", "French Polynesia"};
 
     static final int numRegion = 7;
@@ -1689,7 +1689,7 @@ public class GenReef4 {
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
         //Thread.sleep(10000);
         GenReef4 reef = new GenReef4();
-        reef.basepathIndexAll = "/data5/reef41";
+        reef.basepathIndexAll = "/home/fc/web/reef4";
         if(args.length == 1) {
             reef.basepathIndexAll = args[0];
         }

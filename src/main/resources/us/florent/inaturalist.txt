@@ -214,6 +214,8 @@ Pontonides ankeri,121254
 Pseudopontonides principis,857850
 Stegopontonia commensalis,121223
 Urocaridella antonbruunii,123395
+Urocaridella degravei,1081596
+Urocaridella pulchella,1081423
 Zenopontonia noverca,894684
 Zenopontonia rex,992306
 Zenopontonia soror,992305
@@ -261,6 +263,7 @@ Phallusia julinea,746943
 Ecteinascidia turbinata,132500
 Perophora modificata,367939
 Perophora namei,471731
+Polyandrocarpa polypora,785954
 Polycarpa aurata,155047
 Polycarpa pigmentata,800649
 Polycarpa spongiabilis,324150
@@ -841,6 +844,7 @@ Priacanthus hamrur,84116
 Eques lanceolatus,1316038
 Pareques acuminatus,52293
 Pareques umbrosus,179506
+Pareques viola,108760
 Archosargus probatocephalus,49750
 Calamus bajonado,129563
 Calamus calamus,131525
@@ -1003,6 +1007,7 @@ Chromis limbaughi,97757
 Chromis ovalis,123318
 Chromis scotochiloptera,199182
 Chromis verater,128267
+Chromis weberi,334629
 Dascyllus albisella,121392
 Dascyllus aruanus,952775
 Dascyllus flavicaudus,619653
@@ -1395,6 +1400,7 @@ Leptoseris explanata,104348
 Cladopsammia gracilis,195511
 Tubastraea coccinea,51802
 Tubastraea micranthus,355665
+Turbinaria reniformis,114658
 Fimbriaphyllia ancora,830680
 Porites astreoides,110084
 Porites divaricata,110101
@@ -1453,8 +1459,8 @@ Madracis myriaster,325015
 Pocillopora grandis,734705
 Pocillopora meandrina,109872
 Seriatopora hystrix,112480
-Palythoa caesia,489975
 Palythoa caribaeorum,324157
+Palythoa tuberculosa,195491
 Zoanthus pulchellus,132482
 Hydrozoanthus tunicans,703041
 Bergia catenularis,1077346
@@ -1500,6 +1506,7 @@ Physalia physalis,117302
 Linuche unguiculata,255961
 Cassiopea frondosa,128142
 Cassiopea xamachana,1374937
+Netrostoma setouchianum,885612
 Mastigias papua,69830
 Stomolophus meleagris,126393
 Drymonema larsoni,569393
@@ -1536,6 +1543,7 @@ Ophiolepis impressa,293051
 Ophiolepis superba,338218
 Ophionereis reticulata,293056
 Ophiopsila riisei,293055
+Macrophiothrix nereidina,348203
 Ophiothrix purpurea,179901
 Ophiothrix suensonii,128860
 Ophiothrix oerstedii,468738
@@ -1907,6 +1915,7 @@ Stenoplax purpurascens,322813
 Baseodiscus hemprichii,485074
 Phoronis australis,348480
 Phoronopsis californica,623257
+Maritigrella eschara,354902
 Maritigrella fuscopunctata,354907
 Prostheceraeus crozieri,962052
 Pseudobiceros bedfordi,121378
@@ -1923,6 +1932,7 @@ Pseudoceros liparus,938122
 Pseudoceros prudhoei,180534
 Pseudoceros rubronanus,738890
 Pseudoceros scriptus,487570
+Thysanozoon nigropapillosum,142752
 Clathrina lutea,1169184
 Leucetta chagosensis,764876
 Leucandra aspera,1076065
