@@ -110,7 +110,7 @@
             const firstCrumb = sections[0] && sections[0].breadcrumb;
             const firstTitle = firstCrumb && firstCrumb[firstCrumb.length - 1];
             return e('div', { className: 'taxon-grid-empty' },
-                firstTitle ? 'No species found under ' + firstTitle + '.' : 'Select a taxon in the tree to view species.'
+               'Select a taxon in the tree to view species.'
             );
         }
 

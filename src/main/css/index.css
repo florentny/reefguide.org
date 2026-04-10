@@ -322,6 +322,9 @@ div.homesel {
 .view-toggle input[type="radio"] { cursor: pointer; accent-color: #bdb100; }
 
 /* Taxonomy search */
+.supercat-filter { display: flex; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.supercat-filter label { display: flex; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; }
+.supercat-filter input[type="radio"] { cursor: pointer; accent-color: #bdb100; }
 .taxon-search { margin-bottom: 4px; }
 .taxon-search input { width: 100%; box-sizing: border-box; font-size: 11px; padding: 3px 5px; border: 1px solid #aaa; }
 .taxon-search-results { font-size: 11px; white-space: nowrap; background: #fff; }
