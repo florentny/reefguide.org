@@ -1,13 +1,13 @@
 'use strict';
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
 
     function DropdownItem(props) {
-        var state = React.useState(false);
-        var open = state[0];
-        var setOpen = state[1];
-        var timeoutRef = React.useRef(null);
+        const state = React.useState(false);
+        const open = state[0];
+        const setOpen = state[1];
+        const timeoutRef = React.useRef(null);
 
         function handleEnter() {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -41,11 +41,11 @@
     }
 
     function AreaDropdown(props) {
-        var state = React.useState(false);
-        var open = state[0];
-        var setOpen = state[1];
-        var timeoutRef = React.useRef(null);
-        var reefRef = props.reefRef;
+        const state = React.useState(false);
+        const open = state[0];
+        const setOpen = state[1];
+        const timeoutRef = React.useRef(null);
+        const reefRef = props.reefRef;
 
         function handleEnter() {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -70,7 +70,7 @@
                 style: { display: 'block' }
             },
                 props.items.map(function(child, i) {
-                    var isChecked = child.areaId === reefRef;
+                    const isChecked = child.areaId === reefRef;
                     return e('li', { key: i },
                         e('a', { href: child.href },
                             e('div', {
@@ -85,23 +85,23 @@
     }
 
     function SettingsDropdown() {
-        var state = React.useState(false);
-        var open = state[0];
-        var setOpen = state[1];
-        var timeoutRef = React.useRef(null);
+        const state = React.useState(false);
+        const open = state[0];
+        const setOpen = state[1];
+        const timeoutRef = React.useRef(null);
 
-        var sizeState = React.useState(function() {
+        const sizeState = React.useState(function() {
             if (typeof getCookie === 'function') {
-                var cookie = getCookie('Reefsize');
-                var map = { '0': 160, '1': 240, '2': 400, '3': 316 };
+                const cookie = getCookie('Reefsize');
+                const map = { '0': 160, '1': 240, '2': 400, '3': 316 };
                 if (cookie && map[cookie]) return map[cookie];
             }
             return typeof img_width !== 'undefined' ? img_width : 240;
         });
-        var currentSize = sizeState[0];
-        var setCurrentSize = sizeState[1];
+        const currentSize = sizeState[0];
+        const setCurrentSize = sizeState[1];
 
-        var sizes = [
+        const sizes = [
             { label: 'Small Thumbs', width: 160, fn: typeof sizesmall === 'function' ? sizesmall : null },
             { label: 'Regular Thumbs', width: 240, fn: typeof sizereg === 'function' ? sizereg : null },
             { label: 'Large Thumbs', width: 316, fn: typeof sizebig1 === 'function' ? sizebig1 : null },
@@ -136,7 +136,7 @@
                 style: { display: 'block' }
             },
                 sizes.map(function(size, i) {
-                    var isChecked = currentSize === size.width;
+                    const isChecked = currentSize === size.width;
                     return e('li', { key: i },
                         e('a', {
                             onClick: function() { handleClick(size); },
@@ -154,7 +154,7 @@
     }
 
     function TopNav(props) {
-        var items = props.items || [];
+        const items = props.items || [];
 
         return e('ul', { className: 'topnav' },
             items.map(function(item, i) {

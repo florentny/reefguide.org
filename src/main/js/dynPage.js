@@ -26,10 +26,12 @@ function getCookie(name) {
 
 function setSize(sizeKey) {
     currentConfig = SIZE_CONFIGS[sizeKey];
+    window.currentConfig = currentConfig;
     img_width = currentConfig.imgWidth;
     curCol = 0;
     setCookie("Reefsize", sizeKey);
     creategrid();
+    window.dispatchEvent(new Event('reefsize'));
 }
 
 function sizesmall() { setSize("0"); }
@@ -48,6 +50,7 @@ function creategrid() {
         }
         if (cookie !== null && SIZE_CONFIGS[cookie]) {
             currentConfig = SIZE_CONFIGS[cookie];
+            window.currentConfig = currentConfig;
             img_width = currentConfig.imgWidth;
             curCol = 0;
         }
@@ -62,6 +65,7 @@ function creategrid() {
     curCol = numCol;
 
     const container = document.getElementById("TopTable");
+    if (!container) return;
     container.innerHTML = "";
 
     let colpos = 0;

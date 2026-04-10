@@ -12,6 +12,8 @@
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
         <script type="text/javascript" src="js/TopNav.js"></script>
         <script type="text/javascript" src="js/AccordionMenu.js"></script>
+        <script type="text/javascript" src="js/TaxonomyTree.js"></script>
+        <script type="text/javascript" src="js/TaxonomyGrid.js"></script>
         <script type="text/javascript" src="js/mainindex.js"></script>
 
         <link rel="stylesheet" type="text/css" href="css/all.css" />
@@ -53,6 +55,8 @@
             ];
 
             var treeMenuData = __TREEMENU_JSON__;
+            var reefRef = __REEFREF__;
+            var lcaName = "__LCA_NAME__";
 
             /* ]]> */
         </script>
@@ -88,6 +92,7 @@
                     <div id="TopTable">
                         __INDEX_HTML__
                     </div>
+                    <div id="taxonomy-grid-root" style="display:none"></div>
 
 
 

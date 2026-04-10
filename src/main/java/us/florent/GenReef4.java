@@ -1,6 +1,8 @@
 package us.florent;
 
 import java.io.FileInputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -29,6 +31,9 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -585,6 +590,7 @@ public class GenReef4 {
             genIndexFile(baseIndex, latestGroup, reefRef, headers[0]);
             genRSS(latestGroup, baseIndex);
             updateSearchJson(reefRef, baseIndex);
+            exportTaxonomyJson(reefRef, baseIndex);
             copyFile(baseIndex + "/index1.html", baseIndex + "/index.html");
 
         } catch(IOException ex) {
@@ -627,6 +633,52 @@ public class GenReef4 {
         writer.flush();
         String json = writer.toString();
         writeToFile(json, basepathIndexAll + "/species_region_" + region + ".json");
+    }
+
+    private void exportTaxonomyJson(int region, String baseIndex) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Set<String> regionIds = species_collection.getAllSpecies().stream()
+                .map(Species::id)
+                .collect(Collectors.toSet());
+        ObjectNode root = buildTaxonomyJsonNode(mapper, speciesTree.depthFirstSearch("Biota"), regionIds);
+        if (root != null) {
+            writeToFile(mapper.writeValueAsString(root), basepathIndexAll + "/taxonomy_region_" + region + ".json");
+        }
+    }
+
+    private ObjectNode buildTaxonomyJsonNode(ObjectMapper mapper, SpeciesTree.TreeNode<SpeciesTree.Taxon> node, Set<String> regionIds) {
+        ArrayNode speciesArr = mapper.createArrayNode();
+        ArrayNode childrenArr = mapper.createArrayNode();
+
+        for (SpeciesTree.TreeNode<SpeciesTree.Taxon> child : node.getChildren()) {
+            if (child.getValue() instanceof SpeciesTree.SpeciesNode sn) {
+                if (regionIds.contains(sn.getId())) {
+                    Species sp = species_collection.getSpecies(sn.getId());
+                    if (sp != null) {
+                        ObjectNode spNode = mapper.createObjectNode();
+                        spNode.put("id", sp.id());
+                        spNode.put("name", sp.name());
+                        spNode.put("sname", sp.sciName());
+                        spNode.put("thumb", sp.thumbs().getFirst());
+                        if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
+                        speciesArr.add(spNode);
+                    }
+                }
+            } else {
+                ObjectNode childNode = buildTaxonomyJsonNode(mapper, child, regionIds);
+                if (childNode != null) childrenArr.add(childNode);
+            }
+        }
+
+        if (speciesArr.isEmpty() && childrenArr.isEmpty()) return null;
+
+        ObjectNode obj = mapper.createObjectNode();
+        obj.put("name", node.getValue().getName());
+        obj.put("rank", node.getValue().getRank());
+        if (node.getValue().getCategory() != null) obj.put("category", node.getValue().getCategory());
+        obj.set("children", childrenArr);
+        obj.set("species", speciesArr);
+        return obj;
     }
 
     private String getSpNull(String s) {
@@ -863,7 +915,11 @@ public class GenReef4 {
                     if(t.getCategory() != null) {
                         tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
                     }
-                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident).append(t.getShortSciName()).append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
+                    var taxonUrl = "index" + group.index + ".html#taxon=" + URLEncoder.encode(t.getShortSciName(), StandardCharsets.UTF_8);
+                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident)
+                            .append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">")
+                            .append(t.getShortSciName()).append("</a>")
+                            .append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
                     if(ident.isEmpty())
                         ident.append("&boxur;");
                     else
@@ -1177,7 +1233,7 @@ public class GenReef4 {
         }
         String outString;
 
-        outString = readFile("index_3.html");
+        outString = readFile("index.html");
 
         if(g.index == -1)
             outString = outString.replace("__HEADLINE__", "<div style=\"margin: auto; width: 100%; text-align: center;color: #dcd637;font-size:24pt;padding:10px;\">Latest Updates</div>");
@@ -1254,6 +1310,42 @@ public class GenReef4 {
         String treeMenuJson = buildTreeMenuJson(indexName);
         outString = outString.replace("__TREEMENU_JSON__", treeMenuJson);
 
+        List<SpeciesTree.TreeNode<SpeciesTree.Taxon>> speciesTreeNodes = new ArrayList<>();
+        for(var sp : g.species) {
+            if (sp == null) continue;
+            var speciesNode = speciesTree.findSpecies(sp.id());
+            if (speciesNode != null) {
+                var treeNode = speciesTree.depthFirstSearch(speciesNode.getName());
+                if (treeNode != null) {
+                    speciesTreeNodes.add(treeNode);
+                }
+            }
+        }
+        String lcaName = "";
+        if(!speciesTreeNodes.isEmpty()) {
+            if(speciesTreeNodes.size() == 1) {
+                lcaName = speciesTreeNodes.getFirst().getValue().getName();
+            } else {
+                var lca = speciesTree.findLowestCommonAncestor(speciesTreeNodes);
+                if(lca != null) {
+                    if("Tunicates".equals(speciesTreeNodes.getFirst().getValue().getCategory())) {
+                        lcaName = "Tunicata";
+                    } else {
+                        if(lca.getValue().getRank().equals("Kingdom") || lca.getValue().getRank().equals("Domain")) {
+                            var first = speciesTreeNodes.getFirst();
+                            while(first != null && (!first.getValue().getRank().equals("Phylum"))) {
+                                first = first.getParent();
+                            }
+                            lcaName = first != null ? first.getValue().getName() : lca.getValue().getName();
+                        } else {
+                            lcaName = lca.getValue().getName();
+                        }
+                    }
+                }
+            }
+        }
+        outString = outString.replace("__LCA_NAME__", lcaName);
+
         StringBuilder html = new StringBuilder();
         subdir = "";
         int col = 0;
@@ -1284,6 +1376,31 @@ public class GenReef4 {
         // activeSel is now embedded in treeMenuData JSON
 
         writeToFile(outString, baseIndex + "/" + indexName);
+
+        // Generate taxonomy-only index0.html once, using the first page's data
+        if (g.index != 1) return;
+        String out0 = readFile("index0.html");
+        out0 = processSelectedGuideMenu(out0, reefRef);
+        out0 = out0.replace("__HEADLINE__", "");
+        out0 = out0.replace("__REEFREF__", Integer.toString(reefRef));
+        out0 = out0.replace("__IMG_REEF__", img_reef.toString());
+        out0 = out0.replace("__LINK_REEF__", link_reef.toString());
+        out0 = out0.replace("__NAME_REEF__", reef_name.toString());
+        out0 = out0.replace("__NAME_SCI__", sci_name.toString());
+        out0 = out0.replace("__CAT_REEF_", cat_reef.toString());
+        out0 = out0.replace("__REF_REEF__", ref_reef.toString());
+        out0 = out0.replace("__MAX_COL__", "0");
+        out0 = out0.replace("__PREVNAME__", "");
+        out0 = out0.replace("__NEXTNAME__", "");
+        out0 = out0.replace("__REEF__", reefName[reefRef]);
+        out0 = out0.replace("__PRENAME__", preReefString);
+        out0 = out0.replace("__BASE__", base);
+        out0 = out0.replace("__BANNER__", header);
+        out0 = out0.replace("__ANALYTICS__", analytics ? readFile("analytics.xml") : "");
+        out0 = out0.replace("__TREEMENU_JSON__", treeMenuJson);
+        out0 = out0.replace("__LCA_NAME__", "None");
+        out0 = out0.replace("__TITLE__", title.toString());
+        writeToFile(out0, baseIndex + "/index0.html");
     }
 
     protected void genCatalogFiles(Collection<Species> sp_list,

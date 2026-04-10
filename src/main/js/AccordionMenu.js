@@ -1,10 +1,10 @@
 'use strict';
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
 
     function PageItem(props) {
-        var page = props.page;
+        const page = props.page;
 
         if (page.active) {
             return e(React.Fragment, null,
@@ -26,10 +26,10 @@
     }
 
     function FamilyItem(props) {
-        var family = props.family;
-        var state = React.useState(family.open || false);
-        var expanded = state[0];
-        var setExpanded = state[1];
+        const family = props.family;
+        const state = React.useState(family.open || false);
+        const expanded = state[0];
+        const setExpanded = state[1];
 
         if (family.single) {
             return e('li', null,
@@ -58,8 +58,8 @@
     }
 
     function AccordionSection(props) {
-        var expanded = props.expanded;
-        var onToggle = props.onToggle;
+        const expanded = props.expanded;
+        const onToggle = props.onToggle;
 
         return e('div', null,
             e('h3', {
@@ -79,12 +79,12 @@
     }
 
     function AccordionMenu(props) {
-        var data = props.data;
+        const data = props.data;
         if (!data || !data.sections) return null;
 
-        var state = React.useState(data.activeSection != null ? data.activeSection : -1);
-        var openIndex = state[0];
-        var setOpenIndex = state[1];
+        const state = React.useState(data.activeSection != null ? data.activeSection : -1);
+        const openIndex = state[0];
+        const setOpenIndex = state[1];
 
         return e(React.Fragment, null,
             data.sections.map(function(section, i) {
