@@ -19,6 +19,12 @@ function collectAllSpecies(node) {
     return result;
 }
 
+function countSpeciesInNode(node) {
+    let count = node.species ? node.species.length : 0;
+    (node.children || []).forEach(function(c) { count += countSpeciesInNode(c); });
+    return count;
+}
+
 function renderTaxonomyGrid(sections) {
     const el = document.getElementById('taxonomy-grid-root');
     if (!el || !window.TaxonomyGrid) return;
@@ -52,6 +58,10 @@ function renderTaxonomyGrid(sections) {
         const pendingSelect = pendingSelectState[0];
         const setPendingSelect = pendingSelectState[1];
 
+        const searchState = React.useState('');
+        const searchQuery = searchState[0];
+        const setSearchQuery = searchState[1];
+
         // Expand/shrink the left column to fit tree content in taxonomy mode
         React.useEffect(function() {
             const leftCol = document.getElementById('leftcolumn');
@@ -84,7 +94,27 @@ function renderTaxonomyGrid(sections) {
             return function() { ro.disconnect(); };
         }, [viewMode]);
 
+        function searchNodes(data, query) {
+            const results = [];
+            const q = query.toLowerCase();
+            function traverse(node) {
+                const nameMatch = node.name && node.name.toLowerCase().indexOf(q) !== -1;
+                const catMatch = node.category && node.category.toLowerCase().indexOf(q) !== -1;
+                if (nameMatch || catMatch) results.push({ node: node });
+                (node.species || []).forEach(function(sp) {
+                    const spNameMatch = sp.name && sp.name.toLowerCase().indexOf(q) !== -1;
+                    const spSciMatch = sp.sname && sp.sname.toLowerCase().indexOf(q) !== -1;
+                    if (spNameMatch || spSciMatch) results.push({ node: node, species: sp });
+                });
+                (node.children || []).forEach(traverse);
+            }
+            const topNodes = data.children && data.children.length > 0 ? data.children : [data];
+            topNodes.forEach(traverse);
+            return results;
+        }
+
         function switchMode(mode) {
+            setSearchQuery('');
             setViewMode(mode);
             const topTable = document.getElementById('TopTable');
             const taxGrid = document.getElementById('taxonomy-grid-root');
@@ -237,6 +267,8 @@ function renderTaxonomyGrid(sections) {
             renderTaxonomyGrid(sections);
         }
 
+        const searchResults = searchQuery && taxonomyData ? searchNodes(taxonomyData, searchQuery) : null;
+
         return e(React.Fragment, null,
             e('div', { className: 'view-toggle' },
                 e('label', null,
@@ -260,14 +292,50 @@ function renderTaxonomyGrid(sections) {
                     'Taxonomy'
                 )
             ),
+            viewMode === 'taxonomy' ? e('div', { className: 'taxon-search' },
+                e('input', {
+                    type: 'text',
+                    placeholder: 'Search names & categories\u2026',
+                    value: searchQuery,
+                    onChange: function(ev) { setSearchQuery(ev.target.value); }
+                })
+            ) : null,
             viewMode === 'categories'
                 ? e(AccordionMenu, { data: treeMenuData })
-                : e(TaxonomyTree, {
-                    data: taxonomyData,
-                    selectedName: selectedName,
-                    onSelect: handleNodeSelect,
-                    expandPath: expandPath
-                })
+                : searchResults
+                    ? (searchResults.length === 0
+                        ? e('div', { className: 'taxon-search-empty' }, 'No matches found.')
+                        : e('div', { className: 'taxon-search-results' },
+                            searchResults.slice(0, 100).map(function(r, i) {
+                                return e('div', {
+                                    key: i,
+                                    className: 'taxon-search-result',
+                                    onClick: function() {
+                                        setSearchQuery('');
+                                        handleNodeSelect(r.node);
+                                    }
+                                }, r.species
+                                    ? e(React.Fragment, null,
+                                        e('span', { className: 'taxon-name' }, r.species.name),
+                                        e('span', { className: 'taxon-category' }, '\u00a0'),
+                                        e('span', { className: 'taxon-rank' }, r.species.sname)
+                                    )
+                                    : e(React.Fragment, null,
+                                        e('span', { className: 'taxon-rank' }, (r.node.rank || '') + '\u00a0'),
+                                        e('span', { className: 'taxon-name' }, r.node.name),
+                                        r.node.category ? e('span', { className: 'taxon-category' }, '\u00a0\u2013\u00a0' + r.node.category) : null,
+                                        e('span', { className: 'taxon-count' }, '\u00a0(' + countSpeciesInNode(r.node) + ')')
+                                    )
+                                );
+                            })
+                          )
+                    )
+                    : e(TaxonomyTree, {
+                        data: taxonomyData,
+                        selectedName: selectedName,
+                        onSelect: handleNodeSelect,
+                        expandPath: expandPath
+                    })
         );
     }
 
