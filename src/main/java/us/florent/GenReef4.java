@@ -660,6 +660,7 @@ public class GenReef4 {
                         spNode.put("name", sp.name());
                         spNode.put("sname", sp.sciName());
                         spNode.put("thumb", sp.thumbs().getFirst());
+                        if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
                         speciesArr.add(spNode);
                     }
                 }

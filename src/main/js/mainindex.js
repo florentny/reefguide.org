@@ -11,12 +11,27 @@ function renderNav() {
 
 let _taxGridRoot = null;
 
-function collectAllSpecies(node) {
-    let result = (node.species || []).slice();
+function collectAllSpecies(node, filterFn) {
+    let result = filterFn ? (node.species || []).filter(filterFn) : (node.species || []).slice();
     (node.children || []).forEach(function(c) {
-        result = result.concat(collectAllSpecies(c));
+        result = result.concat(collectAllSpecies(c, filterFn));
     });
     return result;
+}
+
+function filterTaxonomyTree(node, filterFn) {
+    const filteredSpecies = (node.species || []).filter(filterFn);
+    const filteredChildren = (node.children || [])
+        .map(function(child) { return filterTaxonomyTree(child, filterFn); })
+        .filter(function(child) { return child !== null; });
+    if (filteredSpecies.length === 0 && filteredChildren.length === 0) return null;
+    return {
+        name: node.name,
+        rank: node.rank,
+        category: node.category || null,
+        species: filteredSpecies,
+        children: filteredChildren
+    };
 }
 
 function countSpeciesInNode(node) {
@@ -62,6 +77,15 @@ function renderTaxonomyGrid(sections) {
         const searchQuery = searchState[0];
         const setSearchQuery = searchState[1];
 
+        const superCatState = React.useState('ALL');
+        const superCatSel = superCatState[0];
+        const setSuperCatSel = superCatState[1];
+
+        const selectedNodeRef = React.useRef(null);
+        const gridTriggerState = React.useState(0);
+        const gridTrigger = gridTriggerState[0];
+        const setGridTrigger = gridTriggerState[1];
+
         // Expand/shrink the left column to fit tree content in taxonomy mode
         React.useEffect(function() {
             const leftCol = document.getElementById('leftcolumn');
@@ -101,7 +125,9 @@ function renderTaxonomyGrid(sections) {
                 const nameMatch = node.name && node.name.toLowerCase().indexOf(q) !== -1;
                 const catMatch = node.category && node.category.toLowerCase().indexOf(q) !== -1;
                 if (nameMatch || catMatch) results.push({ node: node });
+                const spFilter = getSuperCatFilter();
                 (node.species || []).forEach(function(sp) {
+                    if (spFilter && !spFilter(sp)) return;
                     const spNameMatch = sp.name && sp.name.toLowerCase().indexOf(q) !== -1;
                     const spSciMatch = sp.sname && sp.sname.toLowerCase().indexOf(q) !== -1;
                     if (spNameMatch || spSciMatch) results.push({ node: node, species: sp });
@@ -112,6 +138,72 @@ function renderTaxonomyGrid(sections) {
             topNodes.forEach(traverse);
             return results;
         }
+
+        function getSuperCatFilter() {
+            if (superCatSel === 'ALL') return null;
+            return function(sp) {
+                const sc = sp.superCat || '';
+                if (superCatSel === 'FISH') return sc === 'Fish';
+                if (superCatSel === 'INVERTEBRATES') return sc === 'Invertebrates' || sc === 'Sponges' || sc === 'Corals';
+                if (superCatSel === 'OTHERS') return sc === 'Algae' || sc === 'Mammals' || sc === 'Other';
+                return true;
+            };
+        }
+
+        function buildSections(node, filterFn) {
+            const result = drillDown(node);
+            const effective = result.node;
+            const path = result.path;
+            let sections;
+            if ((effective.children || []).length > 1) {
+                const prefix = path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; });
+                sections = effective.children.map(function(child) {
+                    return {
+                        breadcrumb: prefix.concat([{ name: child.name, rank: child.rank || null, category: child.category || null }]),
+                        species: collectAllSpecies(child, filterFn)
+                    };
+                });
+            } else {
+                sections = [{
+                    breadcrumb: path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; }),
+                    species: collectAllSpecies(effective, filterFn)
+                }];
+            }
+            // If no breadcrumb item has a category, find the nearest ancestor with one
+            const anyCategory = sections.some(function(s) {
+                return s.breadcrumb.some(function(c) { return c.category; });
+            });
+            if (!anyCategory && taxonomyData) {
+                const rootPath = findPathFromRoot(taxonomyData, node.name);
+                if (rootPath) {
+                    for (let i = rootPath.length - 2; i >= 0; i--) {
+                        if (rootPath[i].category) {
+                            const ancestorCrumb = { name: rootPath[i].name, rank: rootPath[i].rank || null, category: rootPath[i].category };
+                            sections = sections.map(function(s) {
+                                return { breadcrumb: [ancestorCrumb].concat(s.breadcrumb), species: s.species };
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+            return sections;
+        }
+
+        // Rebuild grid and re-expand tree when selected node or supercat filter changes
+        React.useEffect(function() {
+            if (!selectedNodeRef.current) return;
+            const node = selectedNodeRef.current;
+            if (taxonomyData) {
+                const ancestorPath = findPathFromRoot(taxonomyData, node.name);
+                if (ancestorPath) {
+                    const pathSet = {};
+                    ancestorPath.forEach(function(n) { pathSet[n.name] = true; });
+                    setExpandPath(pathSet);
+                }
+            }
+            renderTaxonomyGrid(buildSections(node, getSuperCatFilter()));
+        }, [gridTrigger, superCatSel]);
 
         function switchMode(mode) {
             setSearchQuery('');
@@ -226,48 +318,16 @@ function renderTaxonomyGrid(sections) {
                     setExpandPath(pathSet);
                 }
             }
-            const result = drillDown(node);
-            const effective = result.node;
-            const path = result.path;
-            let sections;
-            if ((effective.children || []).length > 1) {
-                const prefix = path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; });
-                sections = effective.children.map(function(child) {
-                    return {
-                        breadcrumb: prefix.concat([{ name: child.name, rank: child.rank || null, category: child.category || null }]),
-                        species: collectAllSpecies(child)
-                    };
-                });
-            } else {
-                sections = [{
-                    breadcrumb: path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; }),
-                    species: collectAllSpecies(effective)
-                }];
-            }
-
-            // If no breadcrumb item has a category, find the nearest ancestor with one
-            const anyCategory = sections.some(function(s) {
-                return s.breadcrumb.some(function(c) { return c.category; });
-            });
-            if (!anyCategory && taxonomyData) {
-                const rootPath = findPathFromRoot(taxonomyData, node.name);
-                if (rootPath) {
-                    for (let i = rootPath.length - 2; i >= 0; i--) {
-                        if (rootPath[i].category) {
-                            const ancestorCrumb = { name: rootPath[i].name, rank: rootPath[i].rank || null, category: rootPath[i].category };
-                            sections = sections.map(function(s) {
-                                return { breadcrumb: [ancestorCrumb].concat(s.breadcrumb), species: s.species };
-                            });
-                            break;
-                        }
-                    }
-                }
-            }
-
-            renderTaxonomyGrid(sections);
+            selectedNodeRef.current = node;
+            setGridTrigger(function(k) { return k + 1; });
         }
 
-        const searchResults = searchQuery && taxonomyData ? searchNodes(taxonomyData, searchQuery) : null;
+        const filterFn = getSuperCatFilter();
+        const filteredTaxonomyData = filterFn && taxonomyData
+            ? filterTaxonomyTree(taxonomyData, filterFn)
+            : taxonomyData;
+
+        const searchResults = searchQuery && filteredTaxonomyData ? searchNodes(filteredTaxonomyData, searchQuery) : null;
 
         return e(React.Fragment, null,
             e('div', { className: 'view-toggle' },
@@ -292,10 +352,29 @@ function renderTaxonomyGrid(sections) {
                     'Taxonomy'
                 )
             ),
+            viewMode === 'taxonomy' ? e('div', { className: 'supercat-filter' },
+                [
+                    { value: 'ALL', label: 'All' },
+                    { value: 'FISH', label: 'Fish' },
+                    { value: 'INVERTEBRATES', label: 'Invertebrates' },
+                    { value: 'OTHERS', label: 'Others' }
+                ].map(function(opt) {
+                    return e('label', { key: opt.value },
+                        e('input', {
+                            type: 'radio',
+                            name: 'supercat',
+                            value: opt.value,
+                            checked: superCatSel === opt.value,
+                            onChange: function() { setSuperCatSel(opt.value); }
+                        }),
+                        opt.label
+                    );
+                })
+            ) : null,
             viewMode === 'taxonomy' ? e('div', { className: 'taxon-search' },
                 e('input', {
                     type: 'text',
-                    placeholder: 'Search names & categories\u2026',
+                    placeholder: 'Search...\u2026',
                     value: searchQuery,
                     onChange: function(ev) { setSearchQuery(ev.target.value); }
                 })
@@ -331,7 +410,7 @@ function renderTaxonomyGrid(sections) {
                           )
                     )
                     : e(TaxonomyTree, {
-                        data: taxonomyData,
+                        data: filteredTaxonomyData,
                         selectedName: selectedName,
                         onSelect: handleNodeSelect,
                         expandPath: expandPath

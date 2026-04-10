@@ -4,8 +4,10 @@
     const e = React.createElement;
 
     const PRE_EXPAND_RANKS = ['domain', 'kingdom', 'subkingdom', 'infrakingdom', 'superphylum', 'superdivision'];
+    const PRE_EXPAND_NAMES = ['Chordata', 'Vertebrata'];
 
     function shouldPreExpand(node) {
+        if (PRE_EXPAND_NAMES.indexOf(node.name) !== -1) return true;
         return node.rank && PRE_EXPAND_RANKS.indexOf(node.rank.toLowerCase()) !== -1;
     }
 
@@ -91,9 +93,9 @@
                 )
             ),
             expanded ? e(React.Fragment, null,
-                (node.children || []).map(function(child, i) {
+                (node.children || []).map(function(child) {
                     return e(TaxonomyNode, {
-                        key: i,
+                        key: child.name,
                         node: child,
                         depth: depth + 1,
                         selectedName: selectedName,
@@ -132,9 +134,9 @@
         const topNodes = data.children && data.children.length > 0 ? data.children : [data];
 
         return e('div', { className: 'taxonomy-tree' },
-            topNodes.map(function(node, i) {
+            topNodes.map(function(node) {
                 return e(TaxonomyNode, {
-                    key: i,
+                    key: node.name,
                     node: node,
                     depth: 0,
                     selectedName: selectedName,
