@@ -1,6 +1,8 @@
 package us.florent;
 
 import java.io.FileInputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -672,6 +674,7 @@ public class GenReef4 {
         ObjectNode obj = mapper.createObjectNode();
         obj.put("name", node.getValue().getName());
         obj.put("rank", node.getValue().getRank());
+        if (node.getValue().getCategory() != null) obj.put("category", node.getValue().getCategory());
         obj.set("children", childrenArr);
         obj.set("species", speciesArr);
         return obj;
@@ -911,7 +914,11 @@ public class GenReef4 {
                     if(t.getCategory() != null) {
                         tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
                     }
-                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident).append(t.getShortSciName()).append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
+                    var taxonUrl = "index" + group.index + ".html#taxon=" + URLEncoder.encode(t.getShortSciName(), StandardCharsets.UTF_8);
+                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident)
+                            .append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">")
+                            .append(t.getShortSciName()).append("</a>")
+                            .append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
                     if(ident.isEmpty())
                         ident.append("&boxur;");
                     else
@@ -1225,7 +1232,7 @@ public class GenReef4 {
         }
         String outString;
 
-        outString = readFile("index_3.html");
+        outString = readFile("index.html");
 
         if(g.index == -1)
             outString = outString.replace("__HEADLINE__", "<div style=\"margin: auto; width: 100%; text-align: center;color: #dcd637;font-size:24pt;padding:10px;\">Latest Updates</div>");
@@ -1301,6 +1308,42 @@ public class GenReef4 {
 
         String treeMenuJson = buildTreeMenuJson(indexName);
         outString = outString.replace("__TREEMENU_JSON__", treeMenuJson);
+
+        List<SpeciesTree.TreeNode<SpeciesTree.Taxon>> speciesTreeNodes = new ArrayList<>();
+        for(var sp : g.species) {
+            if (sp == null) continue;
+            var speciesNode = speciesTree.findSpecies(sp.id());
+            if (speciesNode != null) {
+                var treeNode = speciesTree.depthFirstSearch(speciesNode.getName());
+                if (treeNode != null) {
+                    speciesTreeNodes.add(treeNode);
+                }
+            }
+        }
+        String lcaName = "";
+        if(!speciesTreeNodes.isEmpty()) {
+            if(speciesTreeNodes.size() == 1) {
+                lcaName = speciesTreeNodes.getFirst().getValue().getName();
+            } else {
+                var lca = speciesTree.findLowestCommonAncestor(speciesTreeNodes);
+                if(lca != null) {
+                    if("Tunicates".equals(speciesTreeNodes.getFirst().getValue().getCategory())) {
+                        lcaName = "Tunicata";
+                    } else {
+                        if(lca.getValue().getRank().equals("Kingdom") || lca.getValue().getRank().equals("Domain")) {
+                            var first = speciesTreeNodes.getFirst();
+                            while(first != null && (!first.getValue().getRank().equals("Phylum"))) {
+                                first = first.getParent();
+                            }
+                            lcaName = first != null ? first.getValue().getName() : lca.getValue().getName();
+                        } else {
+                            lcaName = lca.getValue().getName();
+                        }
+                    }
+                }
+            }
+        }
+        outString = outString.replace("__LCA_NAME__", lcaName);
 
         StringBuilder html = new StringBuilder();
         subdir = "";

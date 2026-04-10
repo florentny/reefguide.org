@@ -2,68 +2,58 @@
 'use strict';
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
 
-    var DEFAULT_CONFIG = { imgWidth: 240, imgWidthAct: 216, thumbClass: 'thumb', cellClass: 'celltd' };
+    const DEFAULT_CONFIG = { imgWidth: 240, imgWidthAct: 216, thumbClass: 'thumb', cellClass: 'celltd' };
 
     function getConfig() {
         return window.currentConfig || DEFAULT_CONFIG;
     }
 
     function calcNumCol(imgWidth) {
-        var offset = typeof panelOffset !== 'undefined' ? panelOffset : 200;
-        var cols = Math.floor((window.innerWidth - offset) / imgWidth);
+        const offset = typeof panelOffset !== 'undefined' ? panelOffset : 200;
+        const cols = Math.floor((window.innerWidth - offset) / imgWidth);
         return Math.max(1, cols);
     }
 
-    function TaxonomyGrid(props) {
-        var species = props.species;
-        var title = props.title;
+    function renderSection(section, numCol, config) {
+        const imgWidth = config.imgWidth;
+        const imgWidthAct = config.imgWidthAct;
+        const thumbClass = config.thumbClass;
+        const cellClass = config.cellClass;
+        const colTemplate = 'repeat(' + numCol + ', 1fr)';
 
-        // Re-render on resize
-        var sizeState = React.useState(0);
-        var setSizeKey = sizeState[1];
-        React.useEffect(function() {
-            function onResize() { setSizeKey(function(k) { return k + 1; }); }
-            window.addEventListener('resize', onResize);
-            return function() { window.removeEventListener('resize', onResize); };
-        }, []);
+        const species = section.species || [];
+        if (species.length === 0) return null;
 
-        if (!species || species.length === 0) {
-            return e('div', { className: 'taxon-grid-empty' },
-                title
-                    ? 'No species found under ' + title + '.'
-                    : 'Select a taxon in the tree to view species.'
-            );
-        }
-
-        var config = getConfig();
-        var imgWidth = config.imgWidth;
-        var imgWidthAct = config.imgWidthAct;
-        var thumbClass = config.thumbClass;
-        var cellClass = config.cellClass;
-        var numCol = calcNumCol(imgWidth);
-
-        // Build rows: groups of numCol species
-        var rows = [];
-        for (var i = 0; i < species.length; i += numCol) {
+        const rows = [];
+        for (let i = 0; i < species.length; i += numCol) {
             rows.push(species.slice(i, i + numCol));
         }
 
-        var colTemplate = 'repeat(' + numCol + ', 1fr)';
-
         return e('div', null,
-            title ? e('div', { className: 'taxon-grid-header' }, title) : null,
+            (section.breadcrumb && section.breadcrumb.length > 0) ? e('div', { className: 'taxon-grid-header' },
+                section.breadcrumb.map(function(crumb, i) {
+                    const isLast = i === section.breadcrumb.length - 1;
+                    const crumbContent = e('span', null,
+                        e('span', { style: { fontStyle: 'italic' } }, crumb.name),
+                        crumb.rank ? e('span', { style: { fontStyle: 'normal', color: '#b8a84a' } }, '\u00a0(' + crumb.rank + ')') : null,
+                        crumb.category ? e('span', { style: { fontStyle: 'normal' } }, '\u00a0[' + crumb.category + ']') : null
+                    );
+                    return isLast
+                        ? e('span', { key: i }, crumbContent)
+                        : e('span', { key: i }, crumbContent, e('span', null, '\u00a0\u2192\u00a0'));
+                })
+            ) : null,
             rows.map(function(row, ri) {
-                // Image row
-                var imageRow = e('div', {
+                const imageRow = e('div', {
                     key: 'img-' + ri,
                     className: 'grid-row',
                     style: { gridTemplateColumns: colTemplate }
                 }, row.map(function(sp, ci) {
-                    var thumbUrl = 'pix/thumb/' + sp.id + sp.thumb + '.jpg';
-                    var thumbSrc = thumbUrl.replace('thumb', thumbClass);
-                    var spUrl = sp.id + '.html';
+                    const thumbUrl = 'pix/thumb/' + sp.id + sp.thumb + '.jpg';
+                    const thumbSrc = thumbUrl.replace('thumb', thumbClass);
+                    const spUrl = sp.id + '.html';
                     return e('div', { key: ci, className: cellClass },
                         e('a', { href: spUrl },
                             e('img', {
@@ -77,13 +67,12 @@
                     );
                 }));
 
-                // Name row
-                var nameRow = e('div', {
+                const nameRow = e('div', {
                     key: 'name-' + ri,
                     className: 'grid-row',
                     style: { gridTemplateColumns: colTemplate }
                 }, row.map(function(sp, ci) {
-                    var spUrl = sp.id + '.html';
+                    const spUrl = sp.id + '.html';
                     return e('div', { key: ci, className: 'nameid', style: { width: imgWidth + 'px' } },
                         e('div', { className: 'nameid' },
                             e('a', { className: 'nameid', href: spUrl }, sp.name)
@@ -92,6 +81,45 @@
                 }));
 
                 return e(React.Fragment, { key: ri }, imageRow, nameRow);
+            })
+        );
+    }
+
+    function TaxonomyGrid(props) {
+        const sections = props.sections;
+
+        // Re-render on resize or size setting change
+        const sizeState = React.useState(0);
+        const setSizeKey = sizeState[1];
+        React.useEffect(function() {
+            function onResize() { setSizeKey(function(k) { return k + 1; }); }
+            window.addEventListener('resize', onResize);
+            window.addEventListener('reefsize', onResize);
+            return function() {
+                window.removeEventListener('resize', onResize);
+                window.removeEventListener('reefsize', onResize);
+            };
+        }, []);
+
+        if (!sections || sections.length === 0) {
+            return e('div', { className: 'taxon-grid-empty' }, 'Select a taxon in the tree to view species.');
+        }
+
+        const totalSpecies = sections.reduce(function(n, s) { return n + (s.species ? s.species.length : 0); }, 0);
+        if (totalSpecies === 0) {
+            const firstCrumb = sections[0] && sections[0].breadcrumb;
+            const firstTitle = firstCrumb && firstCrumb[firstCrumb.length - 1];
+            return e('div', { className: 'taxon-grid-empty' },
+                firstTitle ? 'No species found under ' + firstTitle + '.' : 'Select a taxon in the tree to view species.'
+            );
+        }
+
+        const config = getConfig();
+        const numCol = calcNumCol(config.imgWidth);
+
+        return e('div', null,
+            sections.map(function(section, si) {
+                return e(React.Fragment, { key: si }, renderSection(section, numCol, config));
             })
         );
     }

@@ -1,7 +1,7 @@
 
 
 function renderNav() {
-    var navRoot = document.getElementById('topnav-root');
+    const navRoot = document.getElementById('topnav-root');
     if (navRoot && window.TopNav && window.navItems) {
         ReactDOM.createRoot(navRoot).render(
             React.createElement(TopNav, { items: window.navItems })
@@ -9,45 +9,53 @@ function renderNav() {
     }
 }
 
-var _taxGridRoot = null;
+let _taxGridRoot = null;
 
 function collectAllSpecies(node) {
-    var result = (node.species || []).slice();
+    let result = (node.species || []).slice();
     (node.children || []).forEach(function(c) {
         result = result.concat(collectAllSpecies(c));
     });
     return result;
 }
 
-function renderTaxonomyGrid(species, title) {
-    var el = document.getElementById('taxonomy-grid-root');
+function renderTaxonomyGrid(sections) {
+    const el = document.getElementById('taxonomy-grid-root');
     if (!el || !window.TaxonomyGrid) return;
     if (!_taxGridRoot) _taxGridRoot = ReactDOM.createRoot(el);
-    _taxGridRoot.render(React.createElement(TaxonomyGrid, { species: species, title: title }));
+    _taxGridRoot.render(React.createElement(TaxonomyGrid, { sections: sections }));
 }
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
 
     function SidebarWrapper(props) {
-        var treeMenuData = props.treeMenuData;
+        const treeMenuData = props.treeMenuData;
 
-        var modeState = React.useState('categories');
-        var viewMode = modeState[0];
-        var setViewMode = modeState[1];
+        const modeState = React.useState('categories');
+        const viewMode = modeState[0];
+        const setViewMode = modeState[1];
 
-        var taxDataState = React.useState(null);
-        var taxonomyData = taxDataState[0];
-        var setTaxonomyData = taxDataState[1];
+        const taxDataState = React.useState(null);
+        const taxonomyData = taxDataState[0];
+        const setTaxonomyData = taxDataState[1];
 
-        var selectedState = React.useState(null);
-        var selectedName = selectedState[0];
-        var setSelectedName = selectedState[1];
+        const selectedState = React.useState(null);
+        const selectedName = selectedState[0];
+        const setSelectedName = selectedState[1];
+
+        const expandPathState = React.useState(null);
+        const expandPath = expandPathState[0];
+        const setExpandPath = expandPathState[1];
+
+        const pendingSelectState = React.useState(null);
+        const pendingSelect = pendingSelectState[0];
+        const setPendingSelect = pendingSelectState[1];
 
         // Expand/shrink the left column to fit tree content in taxonomy mode
         React.useEffect(function() {
-            var leftCol = document.getElementById('leftcolumn');
-            var contentCol = document.getElementById('contentcolumn');
+            const leftCol = document.getElementById('leftcolumn');
+            const contentCol = document.getElementById('contentcolumn');
             if (!leftCol || !contentCol) return;
 
             if (viewMode !== 'taxonomy') {
@@ -62,14 +70,14 @@ function renderTaxonomyGrid(species, title) {
             leftCol.style.maxWidth = '45vw';
 
             function syncWidth() {
-                var w = leftCol.offsetWidth;
+                const w = leftCol.offsetWidth;
                 contentCol.style.marginLeft = w + 'px';
                 if (typeof panelOffset !== 'undefined') panelOffset = w;
                 // Let TaxonomyGrid re-calculate columns
                 window.dispatchEvent(new Event('resize'));
             }
 
-            var ro = new ResizeObserver(syncWidth);
+            const ro = new ResizeObserver(syncWidth);
             ro.observe(leftCol);
             syncWidth();
 
@@ -78,8 +86,8 @@ function renderTaxonomyGrid(species, title) {
 
         function switchMode(mode) {
             setViewMode(mode);
-            var topTable = document.getElementById('TopTable');
-            var taxGrid = document.getElementById('taxonomy-grid-root');
+            const topTable = document.getElementById('TopTable');
+            const taxGrid = document.getElementById('taxonomy-grid-root');
             if (mode === 'taxonomy') {
                 if (topTable) topTable.style.display = 'none';
                 if (taxGrid) taxGrid.style.display = 'block';
@@ -88,7 +96,10 @@ function renderTaxonomyGrid(species, title) {
                         .then(function(r) { return r.json(); })
                         .then(function(data) { setTaxonomyData(data); });
                 }
-                renderTaxonomyGrid([], null);
+                if (!parseTaxonHash() && typeof lcaName !== 'undefined' && lcaName) {
+                    setPendingSelect(lcaName);
+                }
+                renderTaxonomyGrid([]);
             } else {
                 if (topTable) topTable.style.display = '';
                 if (taxGrid) taxGrid.style.display = 'none';
@@ -96,30 +107,166 @@ function renderTaxonomyGrid(species, title) {
             }
         }
 
+        function drillDown(node) {
+            const path = [];
+            let current = node;
+            while (true) {
+                path.push(current);
+                const children = current.children || [];
+                if (children.length === 1 && !(current.species && current.species.length > 0)) {
+                    current = children[0];
+                } else {
+                    break;
+                }
+            }
+            return { node: current, path: path };
+        }
+
+        function findPathFromRoot(root, targetName) {
+            if (root.name === targetName) return [root];
+            const children = root.children || [];
+            for (let i = 0; i < children.length; i++) {
+                const childPath = findPathFromRoot(children[i], targetName);
+                if (childPath) return [root].concat(childPath);
+            }
+            return null;
+        }
+
+        function parseTaxonHash() {
+            const hash = window.location.hash;
+            if (!hash) return null;
+            const prefix = '#taxon=';
+            if (hash.indexOf(prefix) !== 0) return null;
+            return decodeURIComponent(hash.slice(prefix.length));
+        }
+
+        function selectFromHash(data) {
+            const name = parseTaxonHash();
+            if (!name) return;
+            const path = findPathFromRoot(data, name);
+            if (!path) return;
+            handleNodeSelect(path[path.length - 1]);
+        }
+
+        // Auto-switch to taxonomy mode only for #taxon= hashes
+        React.useEffect(function() {
+            if (parseTaxonHash()) {
+                switchMode('taxonomy');
+            }
+        }, []);
+
+        // Auto-select node once taxonomy data is ready
+        React.useEffect(function() {
+            if (viewMode !== 'taxonomy' || !taxonomyData) return;
+            selectFromHash(taxonomyData);
+        }, [viewMode, taxonomyData]);
+
+        // Handle back/forward navigation and direct hash links
+        React.useEffect(function() {
+            function onHashChange() {
+                if (!parseTaxonHash()) return;
+                if (viewMode !== 'taxonomy') {
+                    switchMode('taxonomy');
+                    // selectFromHash will fire via the [viewMode, taxonomyData] effect once data loads
+                } else if (taxonomyData) {
+                    selectFromHash(taxonomyData);
+                }
+            }
+            window.addEventListener('hashchange', onHashChange);
+            return function() { window.removeEventListener('hashchange', onHashChange); };
+        }, [viewMode, taxonomyData]);
+
+        // Auto-select lcaName when Taxonomy button clicked
+        React.useEffect(function() {
+            if (!pendingSelect || !taxonomyData) return;
+            const path = findPathFromRoot(taxonomyData, pendingSelect);
+            if (path) handleNodeSelect(path[path.length - 1]);
+            setPendingSelect(null);
+        }, [pendingSelect, taxonomyData]);
+
         function handleNodeSelect(node) {
+            window.scrollTo(0, 0);
+            history.replaceState(null, '', '#taxon=' + encodeURIComponent(node.name));
             setSelectedName(node.name);
-            var species = collectAllSpecies(node);
-            var label = node.rank ? node.name + ' (' + node.rank + ')' : node.name;
-            renderTaxonomyGrid(species, label);
+            if (taxonomyData) {
+                const ancestorPath = findPathFromRoot(taxonomyData, node.name);
+                if (ancestorPath) {
+                    const pathSet = {};
+                    ancestorPath.forEach(function(n) { pathSet[n.name] = true; });
+                    setExpandPath(pathSet);
+                }
+            }
+            const result = drillDown(node);
+            const effective = result.node;
+            const path = result.path;
+            let sections;
+            if ((effective.children || []).length > 1) {
+                const prefix = path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; });
+                sections = effective.children.map(function(child) {
+                    return {
+                        breadcrumb: prefix.concat([{ name: child.name, rank: child.rank || null, category: child.category || null }]),
+                        species: collectAllSpecies(child)
+                    };
+                });
+            } else {
+                sections = [{
+                    breadcrumb: path.map(function(n) { return { name: n.name, rank: n.rank || null, category: n.category || null }; }),
+                    species: collectAllSpecies(effective)
+                }];
+            }
+
+            // If no breadcrumb item has a category, find the nearest ancestor with one
+            const anyCategory = sections.some(function(s) {
+                return s.breadcrumb.some(function(c) { return c.category; });
+            });
+            if (!anyCategory && taxonomyData) {
+                const rootPath = findPathFromRoot(taxonomyData, node.name);
+                if (rootPath) {
+                    for (let i = rootPath.length - 2; i >= 0; i--) {
+                        if (rootPath[i].category) {
+                            const ancestorCrumb = { name: rootPath[i].name, rank: rootPath[i].rank || null, category: rootPath[i].category };
+                            sections = sections.map(function(s) {
+                                return { breadcrumb: [ancestorCrumb].concat(s.breadcrumb), species: s.species };
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+
+            renderTaxonomyGrid(sections);
         }
 
         return e(React.Fragment, null,
             e('div', { className: 'view-toggle' },
-                e('button', {
-                    className: 'toggle-btn' + (viewMode === 'categories' ? ' active' : ''),
-                    onClick: function() { switchMode('categories'); }
-                }, 'Categories'),
-                e('button', {
-                    className: 'toggle-btn' + (viewMode === 'taxonomy' ? ' active' : ''),
-                    onClick: function() { switchMode('taxonomy'); }
-                }, 'Taxonomy')
+                e('label', null,
+                    e('input', {
+                        type: 'radio',
+                        name: 'sidebar-view',
+                        value: 'categories',
+                        checked: viewMode === 'categories',
+                        onChange: function() { switchMode('categories'); }
+                    }),
+                    'Categories'
+                ),
+                e('label', null,
+                    e('input', {
+                        type: 'radio',
+                        name: 'sidebar-view',
+                        value: 'taxonomy',
+                        checked: viewMode === 'taxonomy',
+                        onChange: function() { switchMode('taxonomy'); }
+                    }),
+                    'Taxonomy'
+                )
             ),
             viewMode === 'categories'
                 ? e(AccordionMenu, { data: treeMenuData })
                 : e(TaxonomyTree, {
                     data: taxonomyData,
                     selectedName: selectedName,
-                    onSelect: handleNodeSelect
+                    onSelect: handleNodeSelect,
+                    expandPath: expandPath
                 })
         );
     }
@@ -128,7 +275,7 @@ function renderTaxonomyGrid(species, title) {
 })();
 
 function renderAccordion() {
-    var accRoot = document.getElementById('accordion-root');
+    const accRoot = document.getElementById('accordion-root');
     if (accRoot && window.AccordionMenu && window.treeMenuData) {
         ReactDOM.createRoot(accRoot).render(
             React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData })
@@ -142,7 +289,7 @@ function mainInit() {
 
     creategrid();
 
-    var hash = location.hash;
+    const hash = location.hash;
     if (hash !== "") {
         goToByScroll(hash);
     }
@@ -196,14 +343,14 @@ function doScroll() {
     }
 }
 
-var _scrollAnimId = null;
+let _scrollAnimId = null;
 function animateMarginTop(el, target, duration) {
     if (_scrollAnimId) cancelAnimationFrame(_scrollAnimId);
-    var start = parseFloat(el.style.marginTop) || 0;
-    var startTime = null;
+    const start = parseFloat(el.style.marginTop) || 0;
+    let startTime = null;
     function step(timestamp) {
         if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
+        const progress = Math.min((timestamp - startTime) / duration, 1);
         el.style.marginTop = (start + (target - start) * progress) + "px";
         if (progress < 1) {
             _scrollAnimId = requestAnimationFrame(step);
@@ -238,7 +385,7 @@ function FamInit() {
 }
 
 function renderSearch() {
-    var searchRoot = document.getElementById('search-root');
+    const searchRoot = document.getElementById('search-root');
     if (searchRoot && window.SpeciesSearch) {
         ReactDOM.createRoot(searchRoot).render(
             React.createElement(SpeciesSearch)
@@ -256,30 +403,30 @@ function photoInit() {
 }
 
 function resize() {
-    var leftCol = document.getElementById('leftcolumn');
-    var topSec = document.getElementById('topsection');
+    const leftCol = document.getElementById('leftcolumn');
+    const topSec = document.getElementById('topsection');
     if (leftCol && topSec) {
         leftCol.style.height = (document.documentElement.scrollHeight - topSec.offsetHeight) + 'px';
     }
 }
 
 function goToByScroll(id) {
-    var el;
+    let el;
     try { el = document.querySelector(id); } catch(e) { return; }
     if (!el) return;
 
-    var top = el.getBoundingClientRect().top + window.pageYOffset;
+    const top = el.getBoundingClientRect().top + window.pageYOffset;
     if (top > 300) {
         window.scrollTo({ top: top - 10, behavior: 'smooth' });
     }
 
-    var sel = id.replace(/#/g, "").replace(/_/g, " ");
-    var headers = document.querySelectorAll('.catheader');
+    const sel = id.replace(/#/g, "").replace(/_/g, " ");
+    const headers = document.querySelectorAll('.catheader');
     headers.forEach(function(header) {
-        var text = (header.textContent || header.innerText || "").trim();
+        const text = (header.textContent || header.innerText || "").trim();
         if (text === sel) {
             header.style.borderColor = "red";
-            var link = header.querySelector('a');
+            const link = header.querySelector('a');
             if (link) link.style.color = "red";
             setTimeout(function() {
                 header.style.borderColor = "#dcd637";
