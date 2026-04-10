@@ -310,6 +310,8 @@ function renderTaxonomyGrid(sections) {
         function handleNodeSelect(node) {
             window.scrollTo(0, 0);
             history.replaceState(null, '', '#taxon=' + encodeURIComponent(node.name));
+            sessionStorage.setItem('reefTaxonomyBackUrl', window.location.pathname + '#taxon=' + encodeURIComponent(node.name));
+            sessionStorage.setItem('reefTaxonomyTaxon', node.name);
             setSelectedName(node.name);
             if (taxonomyData) {
                 const ancestorPath = findPathFromRoot(taxonomyData, node.name);
@@ -544,10 +546,40 @@ function renderSearch() {
 function SpeciesInit() {
     renderNav();
     renderSearch();
+
+    // If arriving from a taxonomy view, rewrite the back link to return to that taxon
+    var taxonParam = new URLSearchParams(window.location.search).get('taxon');
+    if (taxonParam) {
+        var backUrl = sessionStorage.getItem('reefTaxonomyBackUrl');
+        if (backUrl) {
+            var backAnchor = document.querySelector('.navbox a');
+            if (backAnchor) {
+                backAnchor.href = backUrl;
+                var italicEl = backAnchor.querySelector('i');
+                if (italicEl) italicEl.textContent = taxonParam;
+            }
+        }
+    }
 }
 
 function photoInit() {
     renderNav();
+
+    // Preserve taxon context in the back link when arriving from taxonomy view
+    var photoTaxon = null;
+    if (document.referrer) {
+        try {
+            var ref = new URL(document.referrer);
+            if (ref.origin === window.location.origin) photoTaxon = ref.searchParams.get('taxon');
+        } catch(e) {}
+    }
+    if (!photoTaxon) photoTaxon = sessionStorage.getItem('reefTaxonomyTaxon');
+    if (photoTaxon) {
+        var backAnchor = document.querySelector('.navbox a');
+        if (backAnchor) {
+            backAnchor.href = backAnchor.getAttribute('href') + '?taxon=' + encodeURIComponent(photoTaxon);
+        }
+    }
 }
 
 function resize() {

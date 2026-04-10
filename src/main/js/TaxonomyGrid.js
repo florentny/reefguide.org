@@ -26,6 +26,10 @@
         const species = section.species || [];
         if (species.length === 0) return null;
 
+        const taxonParam = (section.breadcrumb && section.breadcrumb.length > 0)
+            ? '?taxon=' + encodeURIComponent(section.breadcrumb[section.breadcrumb.length - 1].name)
+            : '';
+
         const rows = [];
         for (let i = 0; i < species.length; i += numCol) {
             rows.push(species.slice(i, i + numCol));
@@ -53,7 +57,7 @@
                 }, row.map(function(sp, ci) {
                     const thumbUrl = 'pix/thumb/' + sp.id + sp.thumb + '.jpg';
                     const thumbSrc = thumbUrl.replace('thumb', thumbClass);
-                    const spUrl = sp.id + '.html';
+                    const spUrl = sp.id + '.html' + taxonParam;
                     return e('div', { key: ci, className: cellClass },
                         e('a', { href: spUrl },
                             e('img', {
@@ -72,7 +76,7 @@
                     className: 'grid-row',
                     style: { gridTemplateColumns: colTemplate }
                 }, row.map(function(sp, ci) {
-                    const spUrl = sp.id + '.html';
+                    const spUrl = sp.id + '.html' + taxonParam;
                     return e('div', { key: ci, className: 'nameid', style: { width: imgWidth + 'px' } },
                         e('div', { className: 'nameid' },
                             e('a', { className: 'nameid', href: spUrl }, sp.name)
