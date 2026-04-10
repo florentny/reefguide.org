@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>__REEF____TITLE__</title>
+        <meta name="description" content="Florent's Guide To The __REEF__ Fish, Corals and Creatures__TITLE__" />
+        <meta name="keywords" content="Florent's Guide To The __REEF__ Fish, Corals and Creatures__TITLE__ - scuba diving snorkling snorkel underwater photography resort" />
+        <meta name="author" content="Florent Charpin" />
+        <link rel="alternate" type="application/rss+xml" title="Reefguide.org RSS feed" href="http://reefguide.org/reefguide.xml" />
+
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        <script type="text/javascript" src="js/TopNav.js"></script>
+        <script type="text/javascript" src="js/AccordionMenu.js"></script>
+        <script type="text/javascript" src="js/TaxonomyTree.js"></script>
+        <script type="text/javascript" src="js/TaxonomyGrid.js"></script>
+        <script type="text/javascript" src="js/mainindex.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="css/all.css" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+
+        <script type="text/javascript">
+            /* <![CDATA[ */
+            var img_reef = new Array (__IMG_REEF__);
+            var name_reef = new Array (__NAME_REEF__);
+            var name_sci = new Array (__NAME_SCI__);
+            var cat_reef = new Array (__CAT_REEF_);
+            var ref_reef = new Array (__REF_REEF__);
+            var link_reef = new Array (__LINK_REEF__);
+            var maxCol = __MAX_COL__;
+            var panelOffset = 200;
+            var activeSel = 0;
+            var taxonomyOnly = true;
+
+            var navItems = [
+                { label: 'Home', href: '__BASE__home.html' },
+                { type: 'area', reefRef: __REEFREF__, children: [
+                    { label: 'Caribbean', href: '__BASE__carib/index1.html', areaId: 1 },
+                    { label: 'Indo-Pacific', href: '__BASE__indopac/index1.html', areaId: 2 },
+                    { label: 'South Florida', href: '__BASE__keys/index1.html', areaId: 3 },
+                    { label: 'Hawaii', href: '__BASE__hawaii/index1.html', areaId: 4 },
+                    { label: 'Eastern Pacific', href: '__BASE__baja/index1.html', areaId: 5 },
+                    { label: 'French Polynesia', href: '__BASE__fp/index1.html', areaId: 6 },
+                    { label: 'Worldwide', href: '__BASE__index1.html', areaId: 0 }
+                ]},
+                { label: 'Index', children: [
+                    { label: '\u00a0By Common Names', href: 'cat.html' },
+                    { label: '\u00a0By Categories', href: 'cat_grp.html' },
+                    { label: '\u00a0By Scientific Names', href: 'cat_sci.html' }
+                ]},
+                { label: 'Updates', href: 'latest.html' },
+                { label: 'About', href: '__BASE__about.html' },
+                { label: 'RSS', href: 'http://reefguide.org/reefguide.xml' },
+                { type: 'settings' },
+                { label: 'Search Species', href: '__BASE__search.html?area=__REEFREF__' }
+            ];
+
+            var treeMenuData = __TREEMENU_JSON__;
+            var reefRef = __REEFREF__;
+            var lcaName = "__LCA_NAME__";
+
+            /* ]]> */
+        </script>
+        <script type="text/javascript" src="js/dynPage.js"></script>
+
+         <!--
+            Web site design and all photographs copyright 2004-2026 Florent Charpin. All rights reserved. Email: www@reefguide.org
+         -->
+
+         __ANALYTICS__
+
+    </head>
+
+
+    <body>
+        <script>
+            document.addEventListener('DOMContentLoaded', mainInit);
+        </script>
+
+        <div id="maincontainer">
+
+            <div id="topsection" class="__BANNER__">
+                <h4>Florent's Guide To The __PRENAME__</h4>
+                <h1>__REEF__</h1>
+
+                <div id="topnav-root"></div>
+
+            </div>
+
+            <div id="contentwrapper">
+                <div id="contentcolumn">
+                    <div id="taxonomy-grid-root"></div>
+                </div>
+            </div>
+
+            <div id="leftcolumn" style="font-size: 10px;">
+                <div class="innertube">
+
+                    <div id="accordion-root">
+                    </div>
+                    <br />
+                    All Photographs<br />
+                    &copy; 2026 Florent Charpin
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+    </body>
+</html>

@@ -52,8 +52,9 @@ function renderTaxonomyGrid(sections) {
 
     function SidebarWrapper(props) {
         const treeMenuData = props.treeMenuData;
+        const taxonomyOnly = props.taxonomyOnly || false;
 
-        const modeState = React.useState('categories');
+        const modeState = React.useState(taxonomyOnly ? 'taxonomy' : 'categories');
         const viewMode = modeState[0];
         const setViewMode = modeState[1];
 
@@ -270,9 +271,9 @@ function renderTaxonomyGrid(sections) {
             handleNodeSelect(path[path.length - 1]);
         }
 
-        // Auto-switch to taxonomy mode only for #taxon= hashes
+        // Auto-switch to taxonomy mode for #taxon= hashes, or always if taxonomyOnly
         React.useEffect(function() {
-            if (parseTaxonHash()) {
+            if (taxonomyOnly || parseTaxonHash()) {
                 switchMode('taxonomy');
             }
         }, []);
@@ -330,7 +331,7 @@ function renderTaxonomyGrid(sections) {
         const searchResults = searchQuery && filteredTaxonomyData ? searchNodes(filteredTaxonomyData, searchQuery) : null;
 
         return e(React.Fragment, null,
-            e('div', { className: 'view-toggle' },
+            taxonomyOnly ? null : e('div', { className: 'view-toggle' },
                 e('label', null,
                     e('input', {
                         type: 'radio',
@@ -425,7 +426,7 @@ function renderAccordion() {
     const accRoot = document.getElementById('accordion-root');
     if (accRoot && window.AccordionMenu && window.treeMenuData) {
         ReactDOM.createRoot(accRoot).render(
-            React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData })
+            React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData, taxonomyOnly: !!window.taxonomyOnly })
         );
     }
 }
