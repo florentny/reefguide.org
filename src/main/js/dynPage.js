@@ -65,6 +65,7 @@ function creategrid() {
     curCol = numCol;
 
     const container = document.getElementById("TopTable");
+    if (!container) return;
     container.innerHTML = "";
 
     let colpos = 0;

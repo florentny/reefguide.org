@@ -39,7 +39,7 @@
             (section.breadcrumb && section.breadcrumb.length > 0) ? e('div', { className: 'taxon-grid-header' },
                 section.breadcrumb.map(function(crumb, i) {
                     const isLast = i === section.breadcrumb.length - 1;
-                    const crumbContent = e('span', null,
+                    const crumbContent = e('a', { href: '#taxon=' + encodeURIComponent(crumb.name) },
                         e('span', { style: { fontStyle: 'italic' } }, crumb.name),
                         crumb.rank ? e('span', { style: { fontStyle: 'normal', color: '#b8a84a' } }, '\u00a0(' + crumb.rank + ')') : null,
                         crumb.category ? e('span', { style: { fontStyle: 'normal' } }, '\u00a0[' + crumb.category + ']') : null
