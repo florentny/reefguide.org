@@ -919,7 +919,7 @@ public class GenReef4 {
                         tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
                     }
                     var taxonUrl = "index" + group.index + ".html#taxon=" + URLEncoder.encode(t.getShortSciName(), StandardCharsets.UTF_8);
-                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident)
+                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"").append(tip).append(">").append(ident)
                             .append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">")
                             .append(t.getShortSciName()).append("</a>")
                             .append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
@@ -1820,12 +1820,13 @@ public class GenReef4 {
 
     private void copyFile(String source, String dest) throws IOException {
 
-        try(FileChannel in = new FileInputStream(source).getChannel();
-            FileChannel out = new FileOutputStream(dest).getChannel()) {
-            long size = in.size();
-            MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, size);
-            out.write(buf);
+        try(FileChannel in = new FileInputStream(source).getChannel()) {
+            try(FileChannel out = new FileOutputStream(dest).getChannel()) {
+                long size = in.size();
+                MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, size);
+                out.write(buf);
 
+            }
         } catch(Exception fnfe) {
             fnfe.printStackTrace();
         }
