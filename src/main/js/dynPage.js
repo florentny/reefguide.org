@@ -108,7 +108,6 @@ function creategrid() {
         for (let j = from; j <= upTo; j++) {
             const nameCell = document.createElement("div");
             nameCell.className = "nameid";
-            nameCell.style.width = imgWidth + "px";
 
             const nameLink = document.createElement("a");
             nameLink.className = "nameid";

@@ -77,7 +77,7 @@
                     style: { gridTemplateColumns: colTemplate }
                 }, row.map(function(sp, ci) {
                     const spUrl = sp.id + '.html' + taxonParam;
-                    return e('div', { key: ci, className: 'nameid', style: { width: imgWidth + 'px' } },
+                    return e('div', { key: ci, className: 'nameid' },
                         e('div', { className: 'nameid' },
                             e('a', { className: 'nameid', href: spUrl }, sp.name)
                         )

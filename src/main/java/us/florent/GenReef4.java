@@ -655,13 +655,16 @@ public class GenReef4 {
                 if (regionIds.contains(sn.getId())) {
                     Species sp = species_collection.getSpecies(sn.getId());
                     if (sp != null) {
-                        ObjectNode spNode = mapper.createObjectNode();
-                        spNode.put("id", sp.id());
-                        spNode.put("name", sp.name());
-                        spNode.put("sname", sp.sciName());
-                        spNode.put("thumb", sp.thumbs().getFirst());
-                        if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
-                        speciesArr.add(spNode);
+                        int num = sp.getNameCount();
+                        for (int j = 0; j < num; j++) {
+                            ObjectNode spNode = mapper.createObjectNode();
+                            spNode.put("id", sp.id());
+                            spNode.put("name", sp.getDispName(j));
+                            spNode.put("sname", sp.sciName());
+                            spNode.put("thumb", sp.thumbs().get(j));
+                            if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
+                            speciesArr.add(spNode);
+                        }
                     }
                 }
             } else {

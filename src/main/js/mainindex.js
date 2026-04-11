@@ -98,6 +98,8 @@ function renderTaxonomyGrid(sections) {
                 leftCol.style.maxWidth = '';
                 contentCol.style.marginLeft = '';
                 if (typeof panelOffset !== 'undefined') panelOffset = 200;
+                curCol = 0;
+                creategrid();
                 return;
             }
 
