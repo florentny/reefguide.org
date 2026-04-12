@@ -1809,7 +1809,7 @@ public class GenReef4 {
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
         //Thread.sleep(10000);
         GenReef4 reef = new GenReef4();
-        reef.basepathIndexAll = "/home/fc/web/reef4";
+        reef.basepathIndexAll = "/data5/reef41";
         if(args.length == 1) {
             reef.basepathIndexAll = args[0];
         }
