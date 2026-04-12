@@ -213,8 +213,8 @@ public class GenReef4 {
     protected java.util.ArrayList<Page> pageList = new java.util.ArrayList<>();
 
     //final String[] reefId = {"all", "carib", "indopac", "hawaii", "keys", "baja"};
-    final String[] reefName = {"Tropical Reefs", "Caribbean Reefs", "Tropical Pacific Reefs", "South Florida Reefs", "Hawaii Reefs", "Eastern Pacific Reefs", "French Polynesia"};
-    final String[] preReefName = {"", "Florida, Bahamas &", "", "", "", "", ""};
+    final String[] reefName = {"Tropical Reefs", "Caribbean Reefs", "Indo-Pacific Reefs", "South Florida Reefs", "Hawaiian Reefs", "Eastern Pacific Reefs", "French Polynesian Reefs"};
+    final String[] preReefName = {"", "Florida, Bahamas and", "Hawaiian, South Pacific and", "", "", "", ""};
     final String[] reefMenu = {"Worldwide", "Caribbean", "Pacific", "South Florida", "Hawaii", "Eastern Pacific", "French Polynesia"};
 
     static final int numRegion = 7;
@@ -655,13 +655,16 @@ public class GenReef4 {
                 if (regionIds.contains(sn.getId())) {
                     Species sp = species_collection.getSpecies(sn.getId());
                     if (sp != null) {
-                        ObjectNode spNode = mapper.createObjectNode();
-                        spNode.put("id", sp.id());
-                        spNode.put("name", sp.name());
-                        spNode.put("sname", sp.sciName());
-                        spNode.put("thumb", sp.thumbs().getFirst());
-                        if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
-                        speciesArr.add(spNode);
+                        int num = sp.getNameCount();
+                        for (int j = 0; j < num; j++) {
+                            ObjectNode spNode = mapper.createObjectNode();
+                            spNode.put("id", sp.id());
+                            spNode.put("name", sp.getDispName(j));
+                            spNode.put("sname", sp.sciName());
+                            spNode.put("thumb", sp.thumbs().get(j));
+                            if (sn.getSuperCategory() != null) spNode.put("superCat", sn.getSuperCategory());
+                            speciesArr.add(spNode);
+                        }
                     }
                 }
             } else {
@@ -916,7 +919,7 @@ public class GenReef4 {
                         tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
                     }
                     var taxonUrl = "index" + group.index + ".html#taxon=" + URLEncoder.encode(t.getShortSciName(), StandardCharsets.UTF_8);
-                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"" + tip + ">").append(ident)
+                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"").append(tip).append(">").append(ident)
                             .append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">")
                             .append(t.getShortSciName()).append("</a>")
                             .append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
@@ -1376,6 +1379,31 @@ public class GenReef4 {
         // activeSel is now embedded in treeMenuData JSON
 
         writeToFile(outString, baseIndex + "/" + indexName);
+
+        // Generate taxonomy-only index0.html once, using the first page's data
+        if (g.index != 1) return;
+        String out0 = readFile("index0.html");
+        out0 = processSelectedGuideMenu(out0, reefRef);
+        out0 = out0.replace("__HEADLINE__", "");
+        out0 = out0.replace("__REEFREF__", Integer.toString(reefRef));
+        out0 = out0.replace("__IMG_REEF__", img_reef.toString());
+        out0 = out0.replace("__LINK_REEF__", link_reef.toString());
+        out0 = out0.replace("__NAME_REEF__", reef_name.toString());
+        out0 = out0.replace("__NAME_SCI__", sci_name.toString());
+        out0 = out0.replace("__CAT_REEF_", cat_reef.toString());
+        out0 = out0.replace("__REF_REEF__", ref_reef.toString());
+        out0 = out0.replace("__MAX_COL__", "0");
+        out0 = out0.replace("__PREVNAME__", "");
+        out0 = out0.replace("__NEXTNAME__", "");
+        out0 = out0.replace("__REEF__", reefName[reefRef]);
+        out0 = out0.replace("__PRENAME__", preReefString);
+        out0 = out0.replace("__BASE__", base);
+        out0 = out0.replace("__BANNER__", header);
+        out0 = out0.replace("__ANALYTICS__", analytics ? readFile("analytics.xml") : "");
+        out0 = out0.replace("__TREEMENU_JSON__", treeMenuJson);
+        out0 = out0.replace("__LCA_NAME__", "None");
+        out0 = out0.replace("__TITLE__", title.toString());
+        writeToFile(out0, baseIndex + "/index0.html");
     }
 
     protected void genCatalogFiles(Collection<Species> sp_list,
@@ -1792,12 +1820,13 @@ public class GenReef4 {
 
     private void copyFile(String source, String dest) throws IOException {
 
-        try(FileChannel in = new FileInputStream(source).getChannel();
-            FileChannel out = new FileOutputStream(dest).getChannel()) {
-            long size = in.size();
-            MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, size);
-            out.write(buf);
+        try(FileChannel in = new FileInputStream(source).getChannel()) {
+            try(FileChannel out = new FileOutputStream(dest).getChannel()) {
+                long size = in.size();
+                MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, size);
+                out.write(buf);
 
+            }
         } catch(Exception fnfe) {
             fnfe.printStackTrace();
         }

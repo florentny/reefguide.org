@@ -16,7 +16,7 @@
         return Math.max(1, cols);
     }
 
-    function renderSection(section, numCol, config) {
+    function renderSection(section, numCol, config, showSci) {
         const imgWidth = config.imgWidth;
         const imgWidthAct = config.imgWidthAct;
         const thumbClass = config.thumbClass;
@@ -25,6 +25,10 @@
 
         const species = section.species || [];
         if (species.length === 0) return null;
+
+        const taxonParam = (section.breadcrumb && section.breadcrumb.length > 0)
+            ? '?taxon=' + encodeURIComponent(section.breadcrumb[section.breadcrumb.length - 1].name)
+            : '';
 
         const rows = [];
         for (let i = 0; i < species.length; i += numCol) {
@@ -35,7 +39,7 @@
             (section.breadcrumb && section.breadcrumb.length > 0) ? e('div', { className: 'taxon-grid-header' },
                 section.breadcrumb.map(function(crumb, i) {
                     const isLast = i === section.breadcrumb.length - 1;
-                    const crumbContent = e('span', null,
+                    const crumbContent = e('a', { href: '#taxon=' + encodeURIComponent(crumb.name) },
                         e('span', { style: { fontStyle: 'italic' } }, crumb.name),
                         crumb.rank ? e('span', { style: { fontStyle: 'normal', color: '#b8a84a' } }, '\u00a0(' + crumb.rank + ')') : null,
                         crumb.category ? e('span', { style: { fontStyle: 'normal' } }, '\u00a0[' + crumb.category + ']') : null
@@ -53,7 +57,7 @@
                 }, row.map(function(sp, ci) {
                     const thumbUrl = 'pix/thumb/' + sp.id + sp.thumb + '.jpg';
                     const thumbSrc = thumbUrl.replace('thumb', thumbClass);
-                    const spUrl = sp.id + '.html';
+                    const spUrl = sp.id + '.html' + taxonParam;
                     return e('div', { key: ci, className: cellClass },
                         e('a', { href: spUrl },
                             e('img', {
@@ -72,10 +76,17 @@
                     className: 'grid-row',
                     style: { gridTemplateColumns: colTemplate }
                 }, row.map(function(sp, ci) {
-                    const spUrl = sp.id + '.html';
-                    return e('div', { key: ci, className: 'nameid', style: { width: imgWidth + 'px' } },
+                    const spUrl = sp.id + '.html' + taxonParam;
+                    const hasSci = sp.sname && sp.sname.trim().length > 0;
+                    const displayName = showSci
+                        ? (hasSci ? sp.sname : 'undetermined [' + sp.name + ']')
+                        : sp.name;
+                    const isItalic = showSci && hasSci;
+                    return e('div', { key: ci, className: 'nameid' },
                         e('div', { className: 'nameid' },
-                            e('a', { className: 'nameid', href: spUrl }, sp.name)
+                            e('a', { className: 'nameid', href: spUrl,
+                                style: isItalic ? { fontStyle: 'italic' } : null
+                            }, displayName)
                         )
                     );
                 }));
@@ -101,16 +112,40 @@
             };
         }, []);
 
+        const nameToggleState = React.useState(function() {
+            return localStorage.getItem('reefNameMode') === 'sci';
+        });
+        const showSci = nameToggleState[0];
+        const setShowSci = nameToggleState[1];
+
+        function setNameMode(sci) {
+            localStorage.setItem('reefNameMode', sci ? 'sci' : 'common');
+            setShowSci(sci);
+        }
+
+        const nameToggle = e('div', { className: 'taxgrid-name-toggle' },
+            e('label', null,
+                e('input', { type: 'radio', name: 'taxgrid-name', checked: !showSci,
+                    onChange: function() { setNameMode(false); } }),
+                'Common name'
+            ),
+            e('label', null,
+                e('input', { type: 'radio', name: 'taxgrid-name', checked: showSci,
+                    onChange: function() { setNameMode(true); } }),
+                'Scientific name'
+            )
+        );
+
         if (!sections || sections.length === 0) {
-            return e('div', { className: 'taxon-grid-empty' }, 'Select a taxon in the tree to view species.');
+            return e('div', null, nameToggle,
+                e('div', { className: 'taxon-grid-empty' }, 'Select a taxon in the tree to view species.')
+            );
         }
 
         const totalSpecies = sections.reduce(function(n, s) { return n + (s.species ? s.species.length : 0); }, 0);
         if (totalSpecies === 0) {
-            const firstCrumb = sections[0] && sections[0].breadcrumb;
-            const firstTitle = firstCrumb && firstCrumb[firstCrumb.length - 1];
-            return e('div', { className: 'taxon-grid-empty' },
-               'Select a taxon in the tree to view species.'
+            return e('div', null, nameToggle,
+                e('div', { className: 'taxon-grid-empty' }, 'Select a taxon in the tree to view species.')
             );
         }
 
@@ -118,8 +153,9 @@
         const numCol = calcNumCol(config.imgWidth);
 
         return e('div', null,
+            nameToggle,
             sections.map(function(section, si) {
-                return e(React.Fragment, { key: si }, renderSection(section, numCol, config));
+                return e(React.Fragment, { key: si }, renderSection(section, numCol, config, showSci));
             })
         );
     }

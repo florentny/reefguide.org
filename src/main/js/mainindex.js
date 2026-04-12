@@ -52,8 +52,9 @@ function renderTaxonomyGrid(sections) {
 
     function SidebarWrapper(props) {
         const treeMenuData = props.treeMenuData;
+        const taxonomyOnly = props.taxonomyOnly || false;
 
-        const modeState = React.useState('categories');
+        const modeState = React.useState(taxonomyOnly ? 'taxonomy' : 'categories');
         const viewMode = modeState[0];
         const setViewMode = modeState[1];
 
@@ -97,6 +98,8 @@ function renderTaxonomyGrid(sections) {
                 leftCol.style.maxWidth = '';
                 contentCol.style.marginLeft = '';
                 if (typeof panelOffset !== 'undefined') panelOffset = 200;
+                curCol = 0;
+                creategrid();
                 return;
             }
 
@@ -270,9 +273,9 @@ function renderTaxonomyGrid(sections) {
             handleNodeSelect(path[path.length - 1]);
         }
 
-        // Auto-switch to taxonomy mode only for #taxon= hashes
+        // Auto-switch to taxonomy mode for #taxon= hashes, or always if taxonomyOnly
         React.useEffect(function() {
-            if (parseTaxonHash()) {
+            if (taxonomyOnly || parseTaxonHash()) {
                 switchMode('taxonomy');
             }
         }, []);
@@ -309,6 +312,8 @@ function renderTaxonomyGrid(sections) {
         function handleNodeSelect(node) {
             window.scrollTo(0, 0);
             history.replaceState(null, '', '#taxon=' + encodeURIComponent(node.name));
+            sessionStorage.setItem('reefTaxonomyBackUrl', window.location.pathname + '#taxon=' + encodeURIComponent(node.name));
+            sessionStorage.setItem('reefTaxonomyTaxon', node.name);
             setSelectedName(node.name);
             if (taxonomyData) {
                 const ancestorPath = findPathFromRoot(taxonomyData, node.name);
@@ -330,7 +335,7 @@ function renderTaxonomyGrid(sections) {
         const searchResults = searchQuery && filteredTaxonomyData ? searchNodes(filteredTaxonomyData, searchQuery) : null;
 
         return e(React.Fragment, null,
-            e('div', { className: 'view-toggle' },
+            taxonomyOnly ? null : e('div', { className: 'view-toggle' },
                 e('label', null,
                     e('input', {
                         type: 'radio',
@@ -425,7 +430,7 @@ function renderAccordion() {
     const accRoot = document.getElementById('accordion-root');
     if (accRoot && window.AccordionMenu && window.treeMenuData) {
         ReactDOM.createRoot(accRoot).render(
-            React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData })
+            React.createElement(SidebarWrapper, { treeMenuData: window.treeMenuData, taxonomyOnly: !!window.taxonomyOnly })
         );
     }
 }
@@ -543,10 +548,40 @@ function renderSearch() {
 function SpeciesInit() {
     renderNav();
     renderSearch();
+
+    // If arriving from a taxonomy view, rewrite the back link to return to that taxon
+    var taxonParam = new URLSearchParams(window.location.search).get('taxon');
+    if (taxonParam) {
+        var backUrl = sessionStorage.getItem('reefTaxonomyBackUrl');
+        if (backUrl) {
+            var backAnchor = document.querySelector('.navbox a');
+            if (backAnchor) {
+                backAnchor.href = backUrl;
+                var italicEl = backAnchor.querySelector('i');
+                if (italicEl) italicEl.textContent = taxonParam;
+            }
+        }
+    }
 }
 
 function photoInit() {
     renderNav();
+
+    // Preserve taxon context in the back link when arriving from taxonomy view
+    var photoTaxon = null;
+    if (document.referrer) {
+        try {
+            var ref = new URL(document.referrer);
+            if (ref.origin === window.location.origin) photoTaxon = ref.searchParams.get('taxon');
+        } catch(e) {}
+    }
+    if (!photoTaxon) photoTaxon = sessionStorage.getItem('reefTaxonomyTaxon');
+    if (photoTaxon) {
+        var backAnchor = document.querySelector('.navbox a');
+        if (backAnchor) {
+            backAnchor.href = backAnchor.getAttribute('href') + '?taxon=' + encodeURIComponent(photoTaxon);
+        }
+    }
 }
 
 function resize() {

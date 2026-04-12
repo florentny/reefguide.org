@@ -76,7 +76,6 @@ public class SpeciesTree {
         boolean wasInserted = false;
         private String category = null;
         private String superCategory = null;
-        private String orgName = null;
         int AphiaID;
         int iNaturalistID;
         int numSpecies = 0;
@@ -114,13 +113,6 @@ public class SpeciesTree {
         }
 
         public String getName() {
-            return name;
-        }
-
-        public String getNameOrOrgName() {
-            if(orgName != null && !orgName.isEmpty()) {
-                return orgName;
-            }
             return name;
         }
 
@@ -817,7 +809,7 @@ public class SpeciesTree {
 
     public TreeNode<Taxon> findLowestCommonAncestor(List<TreeNode<Taxon>> nodes) {
         if(nodes == null || nodes.isEmpty()) return null;
-        if(nodes.size() == 1) return nodes.get(0);
+        if(nodes.size() == 1) return nodes.getFirst();
 
         List<List<TreeNode<Taxon>>> paths = new ArrayList<>();
         for(TreeNode<Taxon> node : nodes) {
@@ -830,7 +822,7 @@ public class SpeciesTree {
         int minLen = paths.stream().mapToInt(List::size).min().orElse(0);
         TreeNode<Taxon> lca = null;
         for(int i = 0; i < minLen; i++) {
-            TreeNode<Taxon> current = paths.get(0).get(i);
+            TreeNode<Taxon> current = paths.getFirst().get(i);
             boolean allSame = true;
             for(List<TreeNode<Taxon>> path : paths) {
                 if(path.get(i) != current) {
