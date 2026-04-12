@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>__REEF____TITLE__</title>
@@ -12,6 +12,8 @@
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
         <script type="text/javascript" src="js/TopNav.js"></script>
         <script type="text/javascript" src="js/AccordionMenu.js"></script>
+        <script type="text/javascript" src="js/TaxonomyTree.js"></script>
+        <script type="text/javascript" src="js/TaxonomyGrid.js"></script>
         <script type="text/javascript" src="js/mainindex.js"></script>
 
         <link rel="stylesheet" type="text/css" href="css/all.css" />
@@ -33,7 +35,7 @@
                 { label: 'Home', href: '__BASE__home.html' },
                 { type: 'area', reefRef: __REEFREF__, children: [
                     { label: 'Caribbean', href: '__BASE__carib/index1.html', areaId: 1 },
-                    { label: 'Pacific', href: '__BASE__indopac/index1.html', areaId: 2 },
+                    { label: 'Indo-Pacific', href: '__BASE__indopac/index1.html', areaId: 2 },
                     { label: 'South Florida', href: '__BASE__keys/index1.html', areaId: 3 },
                     { label: 'Hawaii', href: '__BASE__hawaii/index1.html', areaId: 4 },
                     { label: 'Eastern Pacific', href: '__BASE__baja/index1.html', areaId: 5 },
@@ -53,6 +55,8 @@
             ];
 
             var treeMenuData = __TREEMENU_JSON__;
+            var reefRef = __REEFREF__;
+            var lcaName = "__LCA_NAME__";
 
             /* ]]> */
         </script>
@@ -88,6 +92,7 @@
                     <div id="TopTable">
                         __INDEX_HTML__
                     </div>
+                    <div id="taxonomy-grid-root" style="display:none"></div>
 
 
 

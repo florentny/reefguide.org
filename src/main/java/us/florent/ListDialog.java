@@ -1,20 +1,17 @@
 package us.florent;
 
-import java.awt.Component;
-import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 
-/**
- *
- * @author florent
- */
-public class ListDialog extends javax.swing.JDialog {
+import java.util.Optional;
 
-    private static String value = "";
-    private static ListDialog dialog;
-    private Object[] allPossibleValues;
+public class ListDialog extends Dialog<String> {
 
     public static class SpeciesInfo {
         public final String id;
@@ -33,225 +30,109 @@ public class ListDialog extends javax.swing.JDialog {
         }
     }
 
-    public ListDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
-        initComponents();
-    }
+    private final ListView<Object> listView = new ListView<>();
+    private final TextField searchField = new TextField();
+    private Object[] allPossibleValues;
 
-    public static String showDialog(Component frameComp,
-                                    Component locationComp,
-                                    String[] possibleValues,
-                                    String initialValue) {
-        java.awt.Frame frame = JOptionPane.getFrameForComponent(frameComp);
+    private ListDialog(Object[] possibleValues, String initialValue) {
+        setTitle("Species List");
+        setResizable(true);
 
-        dialog = new ListDialog(frame, true);
-        dialog.allPossibleValues = possibleValues;
-        dialog.jList1.setListData(possibleValues);
-        dialog.jList1.setSelectedValue(initialValue, true);
-        dialog.searchTextField.setText("");
-        ListDialog.value = initialValue;
-        dialog.setLocationRelativeTo(locationComp);
-        dialog.setVisible(true);
-        return value;
-    }
+        this.allPossibleValues = possibleValues;
+        listView.setItems(FXCollections.observableArrayList(possibleValues));
 
-    public static String showDialog(Component frameComp,
-                                    Component locationComp,
-                                    Object[] possibleValues,
-                                    String initialValue) {
-        java.awt.Frame frame = JOptionPane.getFrameForComponent(frameComp);
-
-        dialog = new ListDialog(frame, true);
-        dialog.allPossibleValues = possibleValues;
-        dialog.jList1.setListData(possibleValues);
-        if (possibleValues != null && possibleValues.length > 0) {
+        // Select initial value
+        if (initialValue != null) {
             for (Object item : possibleValues) {
-                if (item instanceof SpeciesInfo) {
-                    if (((SpeciesInfo) item).id.equals(initialValue)) {
-                        dialog.jList1.setSelectedValue(item, true);
+                if (item instanceof SpeciesInfo info) {
+                    if (info.id.equals(initialValue)) {
+                        listView.getSelectionModel().select(item);
+                        listView.scrollTo(item);
+                        break;
+                    }
+                } else if (item instanceof String s) {
+                    if (s.equals(initialValue)) {
+                        listView.getSelectionModel().select(item);
+                        listView.scrollTo(item);
                         break;
                     }
                 }
             }
         }
-        dialog.searchTextField.setText("");
-        ListDialog.value = initialValue;
-        dialog.setLocationRelativeTo(locationComp);
-        dialog.setVisible(true);
-        return value;
+
+        // Search filtering
+        searchField.setPromptText("Search...");
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> filterList(newVal));
+
+        Label searchLabel = new Label("Search:");
+        HBox searchBox = new HBox(5, searchLabel, searchField);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchBox.setPadding(new Insets(5));
+
+        // Double-click to select
+        listView.setOnMouseClicked(evt -> {
+            if (evt.getClickCount() == 2 && listView.getSelectionModel().getSelectedItem() != null) {
+                setResult(extractValue(listView.getSelectionModel().getSelectedItem()));
+                close();
+            }
+        });
+
+        VBox content = new VBox(5, searchBox, listView);
+        VBox.setVgrow(listView, Priority.ALWAYS);
+        content.setPrefSize(580, 400);
+
+        getDialogPane().setContent(content);
+        getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                Object selected = listView.getSelectionModel().getSelectedItem();
+                return selected != null ? extractValue(selected) : null;
+            }
+            return null;
+        });
     }
 
-
-
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">
-    private void initComponents() {
-
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
-        jPanel1 = new javax.swing.JPanel();
-        okButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
-        searchTextField = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Species List");
-
-        jLabel1.setText("Search:");
-
-        searchTextField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                filterList();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                filterList();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                filterList();
-            }
-        });
-
-        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        jList1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jList1MouseClicked(evt);
-            }
-        });
-        jList1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                jList1ValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(jList1);
-
-        okButton.setText("Select");
-        okButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                okButtonActionPerformed(evt);
-            }
-        });
-        jPanel1.add(okButton);
-
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelButtonActionPerformed(evt);
-            }
-        });
-        jPanel1.add(cancelButton);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(searchTextField)
-                                .addContainerGap())
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel1)
-                                        .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap())
-        );
-
-        pack();
-    }// </editor-fold>
-
-    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        dialog.setVisible(false);
-
-    }
-
-    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        Object selected = jList1.getSelectedValue();
-        if (selected instanceof SpeciesInfo) {
-            value = ((SpeciesInfo) selected).id;
-        } else {
-            value = (String) selected;
+    private String extractValue(Object item) {
+        if (item instanceof SpeciesInfo info) {
+            return info.id;
         }
-        dialog.setVisible(false);
+        return item != null ? item.toString() : null;
     }
 
-    private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {
-
-    }
-
-    private void jList1MouseClicked(java.awt.event.MouseEvent evt) {
-        if(evt.getClickCount() == 2) {
-            Object selected = jList1.getSelectedValue();
-            if (selected instanceof SpeciesInfo) {
-                value = ((SpeciesInfo) selected).id;
-            } else {
-                value = (String) selected;
-            }
-            dialog.setVisible(false);
+    private void filterList(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            listView.setItems(FXCollections.observableArrayList(allPossibleValues));
+            return;
         }
-    }
-
-    private void filterList() {
-        String searchText = searchTextField.getText().toLowerCase();
-        DefaultListModel<Object> model = new DefaultListModel<>();
-
-        if (allPossibleValues != null) {
-            for (Object item : allPossibleValues) {
-                boolean matches = false;
-                if (item instanceof SpeciesInfo) {
-                    SpeciesInfo info = (SpeciesInfo) item;
-                    matches = info.id.toLowerCase().contains(searchText) ||
-                              info.name.toLowerCase().contains(searchText) ||
-                              info.sciName.toLowerCase().contains(searchText);
-                } else if (item instanceof String) {
-                    matches = ((String) item).toLowerCase().contains(searchText);
-                }
-                if (matches) {
-                    model.addElement(item);
-                }
+        String lower = searchText.toLowerCase();
+        ObservableList<Object> filtered = FXCollections.observableArrayList();
+        for (Object item : allPossibleValues) {
+            boolean matches = false;
+            if (item instanceof SpeciesInfo info) {
+                matches = info.id.toLowerCase().contains(lower) ||
+                          info.name.toLowerCase().contains(lower) ||
+                          info.sciName.toLowerCase().contains(lower);
+            } else if (item instanceof String s) {
+                matches = s.toLowerCase().contains(lower);
+            }
+            if (matches) {
+                filtered.add(item);
             }
         }
-
-        jList1.setModel(model);
+        listView.setItems(filtered);
     }
 
+    public static String showDialog(Window owner, String[] possibleValues, String initialValue) {
+        return showDialog(owner, (Object[]) possibleValues, initialValue);
+    }
 
-
-    // Variables declaration - do not modify
-    private javax.swing.JButton cancelButton;
-    private javax.swing.JList jList1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JButton okButton;
-    private javax.swing.JTextField searchTextField;
-    // End of variables declaration
-
+    public static String showDialog(Window owner, Object[] possibleValues, String initialValue) {
+        ListDialog dialog = new ListDialog(possibleValues, initialValue);
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        Optional<String> result = dialog.showAndWait();
+        return result.orElse(null);
+    }
 }

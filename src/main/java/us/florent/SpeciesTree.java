@@ -52,8 +52,6 @@ public class SpeciesTree {
     List<String> ranks = Arrays.asList("Domain", "Kingdom", "Subkingdom", "Division", "Phylum", "Subphylum", "Parvphylum", "Gigaclass", "Megaclass", "Superclass", "Class", "Subclass",
             "Infraclass", "Subterclass", "Superorder", "Order", "Suborder", "Infraorder", "Superfamily", "Family", "Subfamily", "Tribe", "Genus", "Subgenus", "Species");
 
-    List<TreeNode<Taxon>> families;
-
     Map<String, SpeciesNode> speciesMap;
 
     Map<String, SuperCategory> categoryToSuperCategory;
@@ -78,7 +76,6 @@ public class SpeciesTree {
         boolean wasInserted = false;
         private String category = null;
         private String superCategory = null;
-        private String orgName = null;
         int AphiaID;
         int iNaturalistID;
         int numSpecies = 0;
@@ -116,13 +113,6 @@ public class SpeciesTree {
         }
 
         public String getName() {
-            return name;
-        }
-
-        public String getNameOrOrgName() {
-            if(orgName != null && !orgName.isEmpty()) {
-                return orgName;
-            }
             return name;
         }
 
@@ -197,7 +187,8 @@ public class SpeciesTree {
 
         @Override
         public String getShortSciName() {
-            //return genus.charAt(0) + "." + getSubgenusPart() +  epithet;
+            if(epithet.equals("unknown"))
+                return "undescribed";
             return genus.charAt(0) + ". " +  epithet;
         }
 
@@ -302,7 +293,7 @@ public class SpeciesTree {
 
 
     public TreeNode<Taxon> addSpecies(String id, String genus, String epithet, String subgenus, String speciesName) {
-        TreeNode<Taxon> genusNode = null;
+        TreeNode<Taxon> genusNode;
         if(subgenus != null && !subgenus.isEmpty()) {
             genusNode = depthFirstSearch(root, subgenus);
             if(genusNode != null && genusNode.value.getRank().equals("Genus")) {
@@ -317,11 +308,13 @@ public class SpeciesTree {
             return null; // Genus not found
         }
         // Check if the species already exists
-        for(TreeNode<Taxon> child : genusNode.getChildren()) {
-            if(child.getValue() instanceof SpeciesNode species) {
-                if(species.epithet.equals(epithet)) {
-                    System.out.println("Species already exists: " + speciesName);
-                    return child;
+        if( ! epithet.equals("unknown")) {
+            for(TreeNode<Taxon> child : genusNode.getChildren()) {
+                if(child.getValue() instanceof SpeciesNode species) {
+                    if(species.epithet.equals(epithet)) {
+                        System.out.println("Species already exists: " + speciesName);
+                        return child;
+                    }
                 }
             }
         }
@@ -331,11 +324,11 @@ public class SpeciesTree {
         sp.subgenus = subgenus;
         sp.id = id;
         TreeNode<Taxon> speciesNode = new TreeNode<>(sp);
-        if(epithet.equals("Unknown")) {
+        if(epithet.equals("unknown")) {
             sp.orgGenus = sp.genus;
             sp.genus = "Unknown";
-            genusNode.getValue().orgName = genusNode.getValue().getName();
-            genusNode.getValue().setName("Unknown");
+            //genusNode.getValue().orgName = genusNode.getValue().getName();
+            //genusNode.getValue().setName("Unknown");
         }
         genusNode.addChild(speciesNode);
         return speciesNode;
@@ -402,10 +395,6 @@ public class SpeciesTree {
 
     public void sortTreeByName(TreeNode<Taxon> node) {
         if(node == null) return;
-        if(node.getValue().getName().startsWith("_")) {
-            node.getValue().orgName = node.getValue().getName();
-            node.getValue().setName("Unknown");
-        }
         node.getChildren().sort((a, b) -> a.getValue().getSortName().compareToIgnoreCase(b.getValue().getSortName()));
         for(TreeNode<Taxon> child : node.getChildren()) {
             sortTreeByName(child);
@@ -491,12 +480,16 @@ public class SpeciesTree {
         speciesMap = new HashMap<>();
         collection = db.getCollection("species");
         for(Document doc : collection.find()) {
-            String[] sciName = doc.get("sciName").toString().split(" ", 2);
-            if(sciName.length < 2) {
-                System.out.println("Invalid scientific name: " + doc.get("id").toString() + " - " + doc.get("Name").toString());
-                //addSpecies("Unknown", "Unknown", doc.get("Name").toString());
-                sciName = new String[]{doc.get("id").toString(), "Unknown"}; // Default to Unknown if invalid
-                // continue; // Skip invalid names
+            var sciNameRaw = doc.get("sciName");
+            String[] sciName;
+            if(sciNameRaw == null || sciNameRaw.toString().isEmpty()) {
+                //System.out.println("Invalid scientific name: " + doc.get("id").toString() + " - " + doc.get("Name").toString());
+                if(doc.get("taxoref") == null)
+                    throw new Exception("Invalid scientific name and no taxoref: " + doc.get("id").toString() + " - " + doc.get("Name").toString());
+                sciName = new String[]{doc.get("taxoref").toString(), "unknown"}; // Default to Unknown if invalid
+
+            } else {
+                sciName = sciNameRaw.toString().split(" ", 2);
             }
             var subgenus = doc.getString("subgenus");
             if(subgenus != null && !subgenus.isEmpty()) {
@@ -509,13 +502,15 @@ public class SpeciesTree {
                 continue;
             }
             speciesMap.put(sp.getValue().getName(), (SpeciesNode) sp.getValue());
-            speciesMap.put(((SpeciesNode)sp.getValue()).getId(), (SpeciesNode) sp.getValue());
-            speciesMap.put(doc.get("sciName").toString(), (SpeciesNode) sp.getValue());
+            speciesMap.put(((SpeciesNode) sp.getValue()).getId(), (SpeciesNode) sp.getValue());
+            if(!sciName[1].equals("unknown"))
+                speciesMap.put(doc.get("sciName").toString().replace("+", ""), (SpeciesNode) sp.getValue());
             setSpeciesCategory(sp);
+
         }
         sortTreeByName(depthFirstSearch(root, "Biota"));
 
-        families = getAllFamilyNodes(root);
+        cleanNodeNames();
 
         // Populate numSpecies count for every node after the tree and species have been added
         populateNumSpecies();
@@ -605,17 +600,6 @@ public class SpeciesTree {
         }
     }
 
-    public List<TreeNode<Taxon>> getAllFamilyNodes(TreeNode<Taxon> node) {
-        List<TreeNode<Taxon>> families = new ArrayList<>();
-        if (node.getValue().getRank().equals("Family")) {
-            families.add(node);
-        }
-        for (TreeNode<Taxon> child : node.getChildren()) {
-            families.addAll(getAllFamilyNodes(child));
-        }
-        return families;
-    }
-
     public List<SpeciesNode> getAllSpeciesBelowCategory(String category) {
         List<SpeciesNode> speciesList = new ArrayList<>();
         collectSpeciesBelowCategory(root, category, speciesList);
@@ -672,7 +656,8 @@ public class SpeciesTree {
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
 
         MongoDatabase db;
-        MongoClient mongoClient = MongoClients.create();
+        String mongoUri = System.getenv("MONGODB_URI");
+        MongoClient mongoClient = mongoUri != null ? MongoClients.create(mongoUri) : MongoClients.create();
         db = mongoClient.getDatabase("reef4");
 
         createTree(db);
@@ -797,6 +782,61 @@ public class SpeciesTree {
         }
         path.removeLast();
         return false;
+    }
+
+
+    private List<TreeNode<Taxon>> getPathToNode(TreeNode<Taxon> target) {
+        List<TreeNode<Taxon>> path = new ArrayList<>();
+        if (findPathToNodeHelper(root, target, path)) {
+            return path;
+        }
+        return Collections.emptyList();
+    }
+
+    private boolean findPathToNodeHelper(TreeNode<Taxon> current, TreeNode<Taxon> target, List<TreeNode<Taxon>> path) {
+        path.add(current);
+        if(current == target) {
+            return true;
+        }
+        for(TreeNode<Taxon> child : current.getChildren()) {
+            if(findPathToNodeHelper(child, target, path)) {
+                return true;
+            }
+        }
+        path.removeLast();
+        return false;
+    }
+
+    public TreeNode<Taxon> findLowestCommonAncestor(List<TreeNode<Taxon>> nodes) {
+        if(nodes == null || nodes.isEmpty()) return null;
+        if(nodes.size() == 1) return nodes.getFirst();
+
+        List<List<TreeNode<Taxon>>> paths = new ArrayList<>();
+        for(TreeNode<Taxon> node : nodes) {
+            List<TreeNode<Taxon>> path = getPathToNode(node);
+            if(path.isEmpty()) return null; // node not found
+            paths.add(path);
+        }
+
+        // Find common prefix
+        int minLen = paths.stream().mapToInt(List::size).min().orElse(0);
+        TreeNode<Taxon> lca = null;
+        for(int i = 0; i < minLen; i++) {
+            TreeNode<Taxon> current = paths.getFirst().get(i);
+            boolean allSame = true;
+            for(List<TreeNode<Taxon>> path : paths) {
+                if(path.get(i) != current) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if(allSame) {
+                lca = current;
+            } else {
+                break;
+            }
+        }
+        return lca;
     }
 
 
@@ -928,20 +968,16 @@ public class SpeciesTree {
 
         for(int i = 2; i < list1.size(); i++) {
             String name = list1.get(i).getSciName().split(" ")[0];
-            String rank = list1.get(i).getRank();
+            String finalRank = list1.get(i).getRank();
 
 
-
-
-
-            String finalRank = rank;
             var match = list2.stream()
                     .filter(t -> t.getSciName().startsWith(name) && t.getRank().equals(finalRank)).findFirst();
 
             if(match.isEmpty()) {
-                if(name.equals("Gnathostomata") || rank.equals("Subterclass"))
+                if(name.equals("Gnathostomata") || finalRank.equals("Subterclass"))
                     continue;
-                System.out.println(id + "--> No match for: " + name + " (" + rank + ")");
+                System.out.println(id + "--> No match for: " + name + " (" + finalRank + ")");
             }
         }
     }
@@ -1051,56 +1087,57 @@ public class SpeciesTree {
         List<String> speciesList = getAllSpeciesSciNAmes(root, true);
         List<String> outputLines = Collections.synchronizedList(new ArrayList<>());
         AtomicInteger count = new AtomicInteger();
-        var customPool = new ForkJoinPool(2);
-        try {
-            customPool.submit (() ->
-                speciesList.parallelStream().limit(5000).forEach(sp -> {
-                    String wsp = sp.replace(" ", "%20");
-                    try {
-                        String currentOutput = "";
-                        int currentCount = count.incrementAndGet();
-                        currentOutput += currentCount + "\t";
-                        System.out.print(currentCount + "\t");
-
-                        String id = getRestReply("https://www.marinespecies.org/rest/AphiaIDByName/" + wsp + "?marine_only=true&extant_only=true");
-                        if(id.equals("-999")) {
-                            System.out.print(" *** ");
-                            currentOutput += " *** ";
-                            id = getRestReply999("https://www.marinespecies.org/rest/AphiaRecordsByName/" + wsp + "?marine_only=true&extant_only=true");
-                            if(id == null) {
-                                throw new Exception("Species not found in WoRMS: " + sp);
-                            }
-                        }
-                        currentOutput += sp + "\t" + id + "\t";
-                        System.out.print(sp + "\t" + id + "\t");
-
-                        String rec = getRestReply("https://www.marinespecies.org/rest/AphiaRecordByAphiaID/" + id);
-                        JSONObject json = new JSONObject(rec);
-                        String status = json.get("status").toString();
-                        currentOutput += status + "\t";
-                        System.out.print(status + "\t");
-
-                        String taxon = getRestReply("https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/" + id);
-                        currentOutput += taxon + "\n";
-                        System.out.println(taxon);
-
-                        outputLines.add(currentOutput);
-                    } catch(Exception e) {
-                        System.out.println("Species: " + sp + " UNKNOWN");
-                        unknownSpecies.add(sp);
-                    }
-                })
-            ).get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            customPool.shutdown();
+        try(var customPool = new ForkJoinPool(2)) {
             try {
-                if (!customPool.awaitTermination(1, TimeUnit.MINUTES)) {
-                    System.err.println("Custom pool did not terminate in time.");
+                customPool.submit(() ->
+                        speciesList.parallelStream().limit(5000).forEach(sp -> {
+                            String wsp = sp.replace(" ", "%20");
+                            try {
+                                String currentOutput = "";
+                                int currentCount = count.incrementAndGet();
+                                currentOutput += currentCount + "\t";
+                                System.out.print(currentCount + "\t");
+
+                                String id = getRestReply("https://www.marinespecies.org/rest/AphiaIDByName/" + wsp + "?marine_only=true&extant_only=true");
+                                if(id.equals("-999")) {
+                                    System.out.print(" *** ");
+                                    currentOutput += " *** ";
+                                    id = getRestReply999("https://www.marinespecies.org/rest/AphiaRecordsByName/" + wsp + "?marine_only=true&extant_only=true");
+                                    if(id == null) {
+                                        throw new Exception("Species not found in WoRMS: " + sp);
+                                    }
+                                }
+                                currentOutput += sp + "\t" + id + "\t";
+                                System.out.print(sp + "\t" + id + "\t");
+
+                                String rec = getRestReply("https://www.marinespecies.org/rest/AphiaRecordByAphiaID/" + id);
+                                JSONObject json = new JSONObject(rec);
+                                String status = json.get("status").toString();
+                                currentOutput += status + "\t";
+                                System.out.print(status + "\t");
+
+                                String taxon = getRestReply("https://www.marinespecies.org/rest/AphiaClassificationByAphiaID/" + id);
+                                currentOutput += taxon + "\n";
+                                System.out.println(taxon);
+
+                                outputLines.add(currentOutput);
+                            } catch(Exception e) {
+                                System.out.println("Species: " + sp + " UNKNOWN");
+                                unknownSpecies.add(sp);
+                            }
+                        })
+                ).get();
+            } catch(Exception e) {
+                e.printStackTrace();
+            } finally {
+                customPool.shutdown();
+                try {
+                    if(!customPool.awaitTermination(1, TimeUnit.MINUTES)) {
+                        System.err.println("Custom pool did not terminate in time.");
+                    }
+                } catch(InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             }
         }
         unknownSpecies.forEach(s -> System.out.println("UNKNOWN: " + s));
@@ -1148,6 +1185,35 @@ public class SpeciesTree {
         speciesTree.worms();
         speciesTree.iNaturalist();
 
+    }
+
+    /**
+     * Recursively removes the '+' character from all node names in the tree.
+     * @param node the node to start from
+     */
+    public void removeSpecialCharacterFromNodeNames(TreeNode<Taxon> node) {
+        if (node == null) return;
+
+        if(node.getValue() instanceof SpeciesNode sp) {
+            if(sp.getSciName().contains("+")) {
+              sp.genus = sp.genus.replace("+", "");
+            }
+        }
+
+        String cleanedName = node.getValue().getName().replace("+", "");
+        node.getValue().setName(cleanedName);
+
+        for (TreeNode<Taxon> child : node.getChildren()) {
+            removeSpecialCharacterFromNodeNames(child);
+        }
+    }
+
+    /**
+     * Public method to clean all node names in the tree by removing '+' characters.
+     * Call this after building the taxonomy.
+     */
+    public void cleanNodeNames() {
+        removeSpecialCharacterFromNodeNames(root);
     }
 
 }

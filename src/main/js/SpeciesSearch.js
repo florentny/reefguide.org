@@ -1,9 +1,9 @@
 'use strict';
 
 (function() {
-    var e = React.createElement;
+    const e = React.createElement;
 
-    var REGIONS = [
+    const REGIONS = [
         {id: 0, name: 'All', path: '', code: 'all'},
         {id: 1, name: 'Caribbean', path: 'carib/', code: 'caribbean'},
         {id: 2, name: 'Indo-Pacific', path: 'indopac/', code: 'indopac'},
@@ -14,16 +14,16 @@
     ];
 
     function getUrlValue(key) {
-        var params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
         return params.get(key);
     }
 
     function reefSearch(species, query) {
-        var words = query.split(' ');
-        var fields = ['fullname', 'sname', 'subcategory', 'category', 'synonyms', 'aka'];
-        for (var f = 0; f < fields.length; f++) {
-            var allMatch = true;
-            for (var i = 0; i < words.length; i++) {
+        const words = query.split(' ');
+        const fields = ['fullname', 'sname', 'subcategory', 'category', 'synonyms', 'aka'];
+        for (let f = 0; f < fields.length; f++) {
+            let allMatch = true;
+            for (let i = 0; i < words.length; i++) {
                 if (species[fields[f]].toLowerCase().indexOf(words[i].toLowerCase()) < 0) {
                     allMatch = false;
                     break;
@@ -35,18 +35,18 @@
     }
 
     function SpeciesRow(props) {
-        var species = props.species;
-        var selRegion = props.selRegion;
-        var xquery = props.xquery;
-        var even = props.even;
+        const species = props.species;
+        const selRegion = props.selRegion;
+        const xquery = props.xquery;
+        const even = props.even;
 
-        var state = React.useState(false);
-        var details = state[0];
-        var setDetails = state[1];
+        const state = React.useState(false);
+        const details = state[0];
+        const setDetails = state[1];
 
-        var thumbState = React.useState('');
-        var thumb = thumbState[0];
-        var setThumb = thumbState[1];
+        const thumbState = React.useState('');
+        const thumb = thumbState[0];
+        const setThumb = thumbState[1];
 
         function handleClick() {
             if (!details) {
@@ -55,7 +55,7 @@
             setDetails(!details);
         }
 
-        var rowClass = 'red' + (even ? ' even' : '');
+        const rowClass = 'red' + (even ? ' even' : '');
 
         if (details) {
             return e('tr', { className: even ? 'even' : '', onClick: handleClick },
@@ -90,30 +90,30 @@
     }
 
     function SpeciesSearch() {
-        var areaParam = getUrlValue('area');
-        var initialRegion = 0;
+        const areaParam = getUrlValue('area');
+        let initialRegion = 0;
         if (areaParam !== null) {
-            var parsed = parseInt(areaParam, 10);
+            const parsed = parseInt(areaParam, 10);
             if (!isNaN(parsed) && parsed >= 0 && parsed <= 5) {
                 initialRegion = parsed;
             }
         }
 
-        var regionState = React.useState(REGIONS[initialRegion]);
-        var selRegion = regionState[0];
-        var setSelRegion = regionState[1];
+        const regionState = React.useState(REGIONS[initialRegion]);
+        const selRegion = regionState[0];
+        const setSelRegion = regionState[1];
 
-        var queryState = React.useState('');
-        var query = queryState[0];
-        var setQuery = queryState[1];
+        const queryState = React.useState('');
+        const query = queryState[0];
+        const setQuery = queryState[1];
 
-        var listState = React.useState([]);
-        var speciesList = listState[0];
-        var setSpeciesList = listState[1];
+        const listState = React.useState([]);
+        const speciesList = listState[0];
+        const setSpeciesList = listState[1];
 
-        var loadingState = React.useState(true);
-        var loading = loadingState[0];
-        var setLoading = loadingState[1];
+        const loadingState = React.useState(true);
+        const loading = loadingState[0];
+        const setLoading = loadingState[1];
 
         function fetchSpecies(region) {
             setLoading(true);
@@ -130,8 +130,8 @@
         }, []);
 
         function handleRegionChange(ev) {
-            var idx = parseInt(ev.target.value, 10);
-            var region = REGIONS[idx];
+            const idx = parseInt(ev.target.value, 10);
+            const region = REGIONS[idx];
             setSelRegion(region);
             fetchSpecies(region);
         }
@@ -140,12 +140,12 @@
             setQuery(ev.target.value);
         }
 
-        var showResults = query.length >= 3;
-        var xquery = query.replace(/ /g, '+');
+        const showResults = query.length >= 3;
+        const xquery = query.replace(/ /g, '+');
 
-        var filtered = [];
+        const filtered = [];
         if (showResults) {
-            for (var i = 0; i < speciesList.length && filtered.length < 2000; i++) {
+            for (let i = 0; i < speciesList.length && filtered.length < 2000; i++) {
                 if (reefSearch(speciesList[i], query)) {
                     filtered.push(speciesList[i]);
                 }

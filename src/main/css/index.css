@@ -14,8 +14,6 @@
     line-height: 1.3em;
 }
 
-
-
 div.submenu {
     margin-top: 0px; 
     margin-bottom: 0px;
@@ -316,9 +314,49 @@ div.homesel {
     justify-content: center;
 }
 
+/* View toggle radio buttons */
+.view-toggle { display: flex; margin-bottom: 6px; gap: 10px; align-items: center; }
+.view-toggle label { display: flex; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; }
+.view-toggle input[type="radio"] { cursor: pointer; accent-color: #bdb100; }
 
+/* Taxonomy search */
+.supercat-filter { display: flex; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.supercat-filter label { display: flex; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; }
+.supercat-filter input[type="radio"] { cursor: pointer; accent-color: #bdb100; }
+.taxon-search { margin-bottom: 4px; }
+.taxon-search input { width: 100%; box-sizing: border-box; font-size: 11px; padding: 3px 5px; border: 1px solid #aaa; }
+.taxon-search-results { font-size: 11px; white-space: nowrap; background: #fff; }
+.taxon-search-result { padding: 3px 4px; cursor: pointer; color: #000; border-bottom: 1px solid #f0f0f0; }
+.taxon-search-result:hover { background: #f0f0f0; }
+.taxon-search-result .taxon-rank { color: #666; }
+.taxon-search-result .taxon-name { font-style: italic; }
+.taxon-search-result .taxon-category { color: #555; }
+.taxon-search-result .taxon-count { color: #888; font-size: 10px; }
 
+/* Taxonomy grid name toggle */
+.taxgrid-name-toggle { display: flex; gap: 12px; margin-bottom: 6px; }
+.taxgrid-name-toggle label { display: flex; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; font-family: Verdana, Arial, Helvetica, sans-serif; }
+.taxgrid-name-toggle input[type="radio"] { cursor: pointer; accent-color: #bdb100; }
+.taxon-search-empty { font-size: 11px; color: #888; padding: 6px 4px; font-style: italic; }
 
+/* Taxonomy tree */
+.taxonomy-tree { font-size: 13px; white-space: nowrap; background: #fff; color: #000; padding: 4px 2px; }
+.taxon-row { display: flex; align-items: baseline; padding: 2px 0; cursor: pointer; word-break: break-word; color: #000; }
+.taxon-row:hover { background: #f0f0f0; }
+.taxon-selected { background: #dcd637; }
+.taxon-toggle { min-width: 12px; margin-right: 2px; color: #000; }
+.taxon-rank { color: #666; }
+.taxon-name { font-style: italic; }
+.taxon-category { color: #555; }
+.taxon-count { color: #888; font-size: 10px; }
+.taxon-species-item { padding: 2px 0 2px 16px; font-size: 10px; cursor: pointer; color: #000; }
+.taxon-species-item:hover { background: #f0f0f0; }
+
+/* Taxonomy grid */
+.taxon-grid-header { font-size: 18px; font-weight: bold; padding: 8px 0 4px; color: #dcd637; border-top: #dcd637 2px solid; margin: 4px 5px; text-align: left; }
+.taxon-grid-header a:link, .taxon-grid-header a:visited { color: #dcd637; text-decoration: none; }
+.taxon-grid-header a:hover { color: #fff; text-decoration: none; }
+.taxon-grid-empty { padding: 20px; color: #888; font-style: italic; }
 
 
 
