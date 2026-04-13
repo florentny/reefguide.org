@@ -4,6 +4,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.json.JSONArray;
@@ -558,6 +559,31 @@ public class SpeciesTree {
                 }
             }
         }
+
+        // Build a lookup from group name to its member categories
+        Map<String, List<String>> groupNameToCategories = new HashMap<>();
+        MongoCollection<Document> groupsCollection = db.getCollection("groups");
+        try(MongoCursor<Document> cur = groupsCollection.find().iterator()) {
+            while(cur.hasNext()) {
+                Document groupDoc = cur.next();
+                String name = groupDoc.getString("Name");
+                List<String> categories = groupDoc.getList("category", String.class);
+                if(name != null && categories != null) {
+                    groupNameToCategories.put(name, categories);
+                }
+            }
+        }
+
+        // Expand any group-name keys into their member categories
+        for(Map.Entry<String, SuperCategory> entry : new ArrayList<>(map.entrySet())) {
+            List<String> members = groupNameToCategories.get(entry.getKey());
+            if(members != null) {
+                for(String cat : members) {
+                    map.putIfAbsent(cat, entry.getValue());
+                }
+            }
+        }
+
         return map;
     }
 
