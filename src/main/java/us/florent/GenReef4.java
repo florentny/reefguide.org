@@ -668,7 +668,6 @@ public class GenReef4 {
     }
 
     private void exportAllSpeciesJson(String baseIndex) throws IOException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
         StringWriter writer = new StringWriter();
         JsonGenerator gen = new JsonFactory().createGenerator(writer);
         gen.writeStartArray();
@@ -678,6 +677,8 @@ public class GenReef4 {
             gen.writeStringField("name", sp.name());
             gen.writeStringField("sciName", sp.sciName());
             gen.writeStringField("subGenus", sp.subGenus() != null ? sp.subGenus() : "");
+            var cat = species_collection.getCat(sp.id());
+            gen.writeStringField("category", cat);
             gen.writeStringField("size", getSpNull(sp.size()));
             gen.writeStringField("depth", getSpNull(sp.depth()));
             gen.writeBooleanField("endemic", sp.endemic());
@@ -703,7 +704,6 @@ public class GenReef4 {
             gen.writeArrayFieldStart("dispNames");
             if (sp.dispNames() != null) for (String n : sp.dispNames()) gen.writeString(n);
             gen.writeEndArray();
-            gen.writeStringField("update", sp.update() != null ? sdf.format(sp.update()) : "");
             gen.writeEndObject();
         }
         gen.writeEndArray();
