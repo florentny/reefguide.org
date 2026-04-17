@@ -45,7 +45,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class GenReef4 {
 
-    protected Classifaction genus_classification;
+    protected Classifaction group_classification;
     protected SpeciesCollection species_collection;
 
     static private MongoDatabase db = null;
@@ -73,9 +73,14 @@ public class GenReef4 {
 
         private final Map<String, String> CatSpeeciesType = new HashMap<>();
         private final Map<String, List<String>> groups = new HashMap<>();
+        private final Map<String, List<String>> mobilegroups = new HashMap<>();
 
-        void addGroup(String name, List<String> list) {
-            groups.put(name, list);
+        void addGroup(String name, List<String> list, Boolean mobile) {
+            if(mobile != null && mobile) {
+                mobilegroups.put(name, list);
+            } else {
+                groups.put(name, list);
+            }
         }
 
         List<String> getGroup(String name) {
@@ -92,6 +97,18 @@ public class GenReef4 {
 
         Set<String> getAllCat() {
             return speciesTree.getAllCategories();
+        }
+        String getGroupsKey(String cat) {
+            var ret = cat;
+            for(var it : groups.entrySet()) {
+                if(it.getValue().contains(cat))
+                    ret =  it.getKey();
+            }
+            for(var it : mobilegroups.entrySet()) {
+                if(it.getValue().contains(ret))
+                    return it.getKey();
+            }
+            return ret;
         }
     }
 
@@ -407,14 +424,14 @@ public class GenReef4 {
                         pageList.add(_page);
 
                         for(var name : key3) {
-                            var group = genus_classification.getGroup(name.toString());
+                            var group = group_classification.getGroup(name.toString());
                             if(group == null) {
                                 group = new ArrayList<>();
                                 group.add(name.toString());
                             }
                             group.forEach(cat -> {
                                 _page.group.put(cat, overrideCat(name.toString(), reefRef));
-                                genus_classification.addCatSpeciesType(cat, catType);
+                                group_classification.addCatSpeciesType(cat, catType);
                                 List<String> sl = species_collection.getSpeciesNameFromCat(cat);
                                 sl.forEach(sp -> {
                                     var species = species_collection.getSpecies(sp);
@@ -435,7 +452,7 @@ public class GenReef4 {
     }
 
     private void loadDataBase(MongoDatabase db, int reefRef) {
-        genus_classification = new Classifaction();
+        group_classification = new Classifaction();
 
         species_collection = new SpeciesCollection();
         MongoCollection<Document> collection = db.getCollection("species");
@@ -463,7 +480,7 @@ public class GenReef4 {
         try(MongoCursor<Document> cur = collection.find().iterator()) {
             while(cur.hasNext()) {
                 var doc = cur.next();
-                genus_classification.addGroup(doc.getString("Name"), doc.getList("category", String.class));
+                group_classification.addGroup(doc.getString("Name"), doc.getList("category", String.class), doc.getBoolean("mobile") );
             }
         }
     }
@@ -546,7 +563,7 @@ public class GenReef4 {
                 }
             }
 
-            for(var cat : genus_classification.getAllCat()) {
+            for(var cat : group_classification.getAllCat()) {
                 var z = species_collection.getSpeciesFromCat(cat);
                 genCatFile(z, baseIndex, reefRef, headers[0], cat);
 
@@ -678,7 +695,8 @@ public class GenReef4 {
             gen.writeStringField("sciName", sp.sciName());
             gen.writeStringField("subGenus", sp.subGenus() != null ? sp.subGenus() : "");
             var cat = species_collection.getCat(sp.id());
-            gen.writeStringField("category", cat);
+            gen.writeStringField("orgcategory", cat);
+            gen.writeStringField("category", group_classification.getGroupsKey(cat));
             gen.writeStringField("size", getSpNull(sp.size()));
             gen.writeStringField("depth", getSpNull(sp.depth()));
             gen.writeBooleanField("endemic", sp.endemic());
@@ -1593,7 +1611,7 @@ public class GenReef4 {
     static final String[] typeList = new String[]{"Fish", "Invertebrates", "Sponges", "Corals", "Algae", "Marine Reptiles &amp; Mammals"};
 
     private String getSpeciesClass(String cat) {
-        String type = genus_classification.getCatSpeciesType(cat);
+        String type = group_classification.getCatSpeciesType(cat);
         if(type == null) {
             return null;
         }
