@@ -63,7 +63,7 @@
             onMouseLeave: handleLeave
         },
             e('span', { className: 'ba' },
-                e('a', { style: { cursor: 'pointer' } }, 'Area')
+                e('a', { style: { cursor: 'pointer' } }, 'Region')
             ),
             open ? e('ul', {
                 className: 'subnav',
@@ -156,30 +156,32 @@
     function TopNav(props) {
         const items = props.items || [];
 
-        return e('ul', { className: 'topnav' },
-            items.map(function(item, i) {
-                if (item.type === 'settings') {
-                    return e(SettingsDropdown, { key: i });
-                }
-                if (item.type === 'area') {
-                    return e(AreaDropdown, {
-                        key: i,
-                        reefRef: item.reefRef,
-                        items: item.children
-                    });
-                }
-                if (item.children) {
-                    return e(DropdownItem, {
-                        key: i,
-                        label: item.label,
-                        items: item.children
-                    });
-                }
-                return e('li', { key: i, className: 'ba' },
+        const nodes = [];
+        items.forEach(function(item, i) {
+            if (i > 0) {
+                nodes.push(e('li', { key: 'sep-' + i, className: 'nav-sep' }, '|'));
+            }
+            if (item.type === 'settings') {
+                nodes.push(e(SettingsDropdown, { key: i }));
+            } else if (item.type === 'area') {
+                nodes.push(e(AreaDropdown, {
+                    key: i,
+                    reefRef: item.reefRef,
+                    items: item.children
+                }));
+            } else if (item.children) {
+                nodes.push(e(DropdownItem, {
+                    key: i,
+                    label: item.label,
+                    items: item.children
+                }));
+            } else {
+                nodes.push(e('li', { key: i, className: 'ba' },
                     e('a', { href: item.href }, item.label)
-                );
-            })
-        );
+                ));
+            }
+        });
+        return e('ul', { className: 'topnav' }, nodes);
     }
 
     window.TopNav = TopNav;
