@@ -81,15 +81,9 @@ public class SpeciesTree {
         int iNaturalistID;
         int numSpecies = 0;
 
-
-        public int getAphiaID() {
-            return AphiaID;
-        }
-
         public void setAphiaID(int aphiaID) {
             AphiaID = aphiaID;
         }
-
 
         public String getCategory() {
             return category;
@@ -154,13 +148,6 @@ public class SpeciesTree {
 
         public SpeciesNode(String name, String rank) {
             super(name, rank);
-        }
-
-        public String getOrgGenus() {
-            if(orgGenus == null || orgGenus.isEmpty()) {
-                return genus;
-            }
-            return orgGenus;
         }
 
         public String getId() {
@@ -494,7 +481,6 @@ public class SpeciesTree {
             }
             var subgenus = doc.getString("subgenus");
             if(subgenus != null && !subgenus.isEmpty()) {
-                Taxon taxon = new Taxon(subgenus, "Subgenus");
                 addLeaf(sciName[0], subgenus, "Subgenus");
             }
             var sp = addSpecies(doc.get("id").toString(), sciName[0], sciName[1], subgenus, doc.get("Name").toString());
@@ -912,7 +898,7 @@ public class SpeciesTree {
         return count;
     }
 
-    void addInaturalistIDs() throws Exception {
+    void addInaturalistIDs() {
         try(InputStream is = SpeciesTree.class.getResourceAsStream("inaturalist.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(Objects.requireNonNull(is)))) {
             String line;
@@ -1175,7 +1161,7 @@ public class SpeciesTree {
     }
 
 
-    public static void main(String[] args) throws Exception {
+    static void main() throws Exception {
 
         SpeciesTree speciesTree = new SpeciesTree();
         speciesTree.buildTaxonomy();
