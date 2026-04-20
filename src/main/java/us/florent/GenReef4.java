@@ -10,6 +10,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -283,7 +284,8 @@ public class GenReef4 {
             System.out.println("================= Site " + path + " =================");
             System.out.println("Processing worldwide:");
             int all = process("reeflist4", basepathIndexAll, 0, hearderAll);
-            exportAllSpeciesJson(basepathIndexAll);
+            exportAllSpeciesJson(basepathIndexAll, -1);
+            exportAllSpeciesJson(basepathIndexAll, 8);
             int all_pic = numPhotos;
             System.out.println("Processing Caribbean:");
             int carib = process("reeflistcarib4", basepathIndexCarib, 1, hearderCarib);
@@ -684,7 +686,7 @@ public class GenReef4 {
         return obj;
     }
 
-    private void exportAllSpeciesJson(String baseIndex) throws IOException {
+    private void exportAllSpeciesJson(String baseIndex, int limit) throws IOException {
         StringWriter writer = new StringWriter();
         JsonGenerator gen = new JsonFactory().createGenerator(writer);
         gen.writeStartArray();
@@ -704,13 +706,19 @@ public class GenReef4 {
             for (String d : sp.dist()) gen.writeString(d);
             gen.writeEndArray();
             gen.writeArrayFieldStart("photos");
+            int photoCount = 0;
             for (Photo p : sp.photo()) {
+                if (photoCount++ == limit)
+                    break;
                 gen.writeStartObject();
                 gen.writeNumberField("id", p.id());
                 gen.writeStringField("location", getSpNull(p.location()));
                 gen.writeStringField("type", getSpNull(p.type()));
                 gen.writeStringField("comment", getSpNull(p.comment()));
                 gen.writeEndObject();
+                if (limit > 0) {
+                    Files.copy(Paths.get("/run/media/fc/video/pix5/" + sp.id + p.id() + ".jpg"), Paths.get("/run/media/fc/video/pix/" + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                }
             }
             gen.writeEndArray();
             gen.writeArrayFieldStart("thumbs");
@@ -727,7 +735,8 @@ public class GenReef4 {
         gen.writeEndArray();
         gen.flush();
         writer.flush();
-        writeToFile(writer.toString(), baseIndex + "/species_all.json");
+        var filename = (limit > 0) ? baseIndex + "/species_all_" + limit + ".json" : baseIndex + "/species_all.json";
+        writeToFile(writer.toString(), filename);
     }
 
     private String getSpNull(String s) {
