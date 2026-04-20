@@ -88,14 +88,23 @@ ul.topnav {
     margin-left: 15px;
     float: left;
     font-size: 12px;
+    display: flex;
+    align-items: center;
     /*background: url(topnav_bg.gif) repeat-x;*/
 }
 
 ul.topnav li {
-    float: left;
+    float: none;
     margin: 0;
-    padding: 0 5px 0 0;
+    padding: 0 0px 0 0;
     position: relative; /*--Declare X and Y axis base for sub navigation--*/
+}
+
+ul.topnav li.nav-sep {
+    color: #aaa;
+    padding: 0;
+    cursor: default;
+    pointer-events: none;
 }
 
 ul.topnav li a{
@@ -103,7 +112,6 @@ ul.topnav li a{
     background: transparent;
     display: block;
     text-decoration: none;
-    float: left;
     color: #8bcd6b;
     font-family: Verdana,Arial,Helvetica,sans-serif;
     font-weight: bold;
@@ -117,7 +125,6 @@ ul.topnav li a:hover{
 
 ul.topnav li span { /*--Drop down trigger styles--*/
 
-    float: left;
     background: transparent;
 }
 
@@ -156,18 +163,20 @@ ul.topnav li ul.subnav {
 
 
 ul.topnav li ul.subnav li{
+    display: block;
     margin: 0; padding: 0;
     border-top: 0px solid #252525;
     border-bottom: 0px solid #444;
-    /*clear: both;*/
     width: 200px;
 
 }
 
 ul.topnav li ul.subnav li a {
     color: #1c94c4;
-    float: left;
+    display: block;
+    width: 100%;
     padding-left: 0px;
+    box-sizing: border-box;
 }
 
 ul.topnav li ul.subnav li a:hover {
