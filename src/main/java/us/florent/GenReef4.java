@@ -1046,7 +1046,7 @@ public class GenReef4 {
                     output.append(ph.comment);
                     div = " / ";
                 }
-                if(!ph.location.isEmpty()) {
+                if(!ph.location.isEmpty() && ! ph.location.equals("N/A")) {
                     output.append(div).append("Location: ").append(ph.location);
                 }
                 output.append("</div>");
