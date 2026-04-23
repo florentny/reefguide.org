@@ -1046,7 +1046,7 @@ public class GenReef4 {
                     output.append(ph.comment);
                     div = " / ";
                 }
-                if(!ph.location.isEmpty()) {
+                if(!ph.location.isEmpty() && ! ph.location.equals("N/A")) {
                     output.append(div).append("Location: ").append(ph.location);
                 }
                 output.append("</div>");
@@ -1778,7 +1778,7 @@ public class GenReef4 {
 
         System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "warn");
         GenReef4 reef = new GenReef4();
-        reef.basepathIndexAll = "/home/fc/web/reef4";
+        reef.basepathIndexAll = "/data5/reef41";
         if(args.length == 1) {
             reef.basepathIndexAll = args[0];
         }
