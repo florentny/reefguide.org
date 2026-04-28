@@ -1,3 +1,5 @@
+.gitignore
 /build/
 /.gradle/
 /gradle/
+.playwright-mcp/

@@ -1,5 +1,6 @@
 package us.florent;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -680,6 +681,7 @@ public class GenReef4 {
         ObjectNode obj = mapper.createObjectNode();
         obj.put("name", node.getValue().getName());
         obj.put("rank", node.getValue().getRank());
+        obj.put("count", node.getValue().getNumSpecies());
         if (node.getValue().getCategory() != null) obj.put("category", node.getValue().getCategory());
         obj.set("children", childrenArr);
         obj.set("species", speciesArr);
@@ -716,8 +718,23 @@ public class GenReef4 {
                 gen.writeStringField("type", getSpNull(p.type()));
                 gen.writeStringField("comment", getSpNull(p.comment()));
                 gen.writeEndObject();
-                if (limit > 0) {
-                    Files.copy(Paths.get("/run/media/fc/video/pix5/" + sp.id + p.id() + ".jpg"), Paths.get("/run/media/fc/video/pix/" + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                if (limit >= -1) {
+                    String photoPath;
+                    var c = sp.id.charAt(0);
+                    if(c >= 'a' && c < 'e') {
+                        photoPath = "/data5/mobile/pix1/";
+                    } else if(c >= 'e' && c < 'm') {
+                        photoPath = "/data5/mobile/pix2/";
+                    } else if(c >= 'm' && c < 's') {
+                        photoPath = "/data5/mobile/pix3/";
+                    } else  {
+                        photoPath = "/data5/mobile/pix4/";
+                    }
+                    File file = new File(photoPath + sp.id + p.id() + ".jpg");
+                    if (!file.exists()) {
+                        System.out.println("copy file " + photoPath + sp.id + p.id() + ".jpg");
+                        Files.copy(Paths.get("/home/fc/web/reef4/pix/thumb5/" + sp.id + p.id() + ".jpg"), Paths.get(photoPath + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                    }
                 }
             }
             gen.writeEndArray();

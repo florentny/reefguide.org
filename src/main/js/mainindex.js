@@ -229,6 +229,9 @@ function renderTaxonomyGrid(sections) {
                 if (topTable) topTable.style.display = '';
                 if (taxGrid) taxGrid.style.display = 'none';
                 setSelectedName(null);
+                if (window.location.hash) {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
             }
         }
 
