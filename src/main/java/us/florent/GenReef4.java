@@ -732,8 +732,12 @@ public class GenReef4 {
                     }
                     File file = new File(photoPath + sp.id + p.id() + ".jpg");
                     if (!file.exists()) {
-                        System.out.println("copy file " + photoPath + sp.id + p.id() + ".jpg");
-                        Files.copy(Paths.get("/home/fc/web/reef4/pix/thumb5/" + sp.id + p.id() + ".jpg"), Paths.get(photoPath + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                        try {
+                            Files.copy(Paths.get("/home/fc/web/reef4/pix/thumb5/" + sp.id + p.id() + ".jpg"), Paths.get(photoPath + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("copy file " + photoPath + sp.id + p.id() + ".jpg");
+                        } catch (java.nio.file.NoSuchFileException ex) {
+                            System.out.println("Cannot copy file " + photoPath + sp.id + p.id() + ".jpg");
+                        }
                     }
                 }
             }
@@ -1096,6 +1100,11 @@ public class GenReef4 {
         }
 
 
+        var firstCat = species_collection.getCat(sp.id());
+        var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+        outString = outString.replace("__DEEP_LINK__", deepLink);
+
 
         writeToFile(outString, baseIndex + "/" + sp.id + ".html");
     }
@@ -1223,6 +1232,11 @@ public class GenReef4 {
         outString = outString.replace("__FISH_HTML__", output.toString());
 
         outString = outString.replace("__INDEX__", "../" + sp.id + ".html");
+
+        var firstCat = species_collection.getCat(sp.id());
+        var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+        outString = outString.replace("__DEEP_LINK__", deepLink);
 
 
         writeToFile(outString, baseIndex + "/pixhtml/" + thumbimg + ".html");
@@ -1380,6 +1394,15 @@ public class GenReef4 {
             outString = outString.replace("__ANALYTICS__", readFile("analytics.xml"));
         } else {
             outString = outString.replace("__ANALYTICS__", "");
+        }
+
+        if(g.species.isEmpty()) {
+            outString = outString.replace("__DEEP_LINK__", "");
+        } else {
+            var firstCat = species_collection.getCat(g.species.getFirst().id());
+            var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+            String deepLink = "browse?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+            outString = outString.replace("__DEEP_LINK__", deepLink);
         }
 
         String treeMenuJson = buildTreeMenuJson(indexName);

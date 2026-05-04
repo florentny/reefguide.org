@@ -24,6 +24,15 @@
         ];
     </script>
 
+    <script type="text/javascript">
+        if (new URLSearchParams(window.location.search).get('desktop') === 'true') {
+            sessionStorage.setItem('desktopMode', 'true');
+        }
+        if (screen.width <= 750 && sessionStorage.getItem('desktopMode') !== 'true') {
+            document.location = "https://m.reefguide.org/";
+        }
+    </script>
+
     <meta name="apple-itunes-app" content="app-id=6762312883">
 
     <!--
