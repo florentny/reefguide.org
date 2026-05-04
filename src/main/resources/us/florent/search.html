@@ -17,6 +17,16 @@
         <link rel="stylesheet" type="text/css" href="css/search.css" />
 
         <script type="text/javascript">
+            if (new URLSearchParams(window.location.search).get('desktop') === 'true') {
+                sessionStorage.setItem('desktopMode', 'true');
+            }
+            if (screen.width <= 750 && sessionStorage.getItem('desktopMode') !== 'true') {
+                document.location = "https://m.reefguide.org/search";
+            }
+        </script>
+
+
+        <script type="text/javascript">
             var navItems = [
                 { label: 'Home', href: 'home.html' },
                 { label: 'Latest Updates', href: 'latest.html' },

@@ -16,6 +16,15 @@
         <link rel="stylesheet" type="text/css" href="../css/species.css" />
 
         <script type="text/javascript">
+            if (new URLSearchParams(window.location.search).get('desktop') === 'true') {
+                sessionStorage.setItem('desktopMode', 'true');
+            }
+            if (screen.width <= 750 && sessionStorage.getItem('desktopMode') !== 'true') {
+                document.location = "https://m.reefguide.org/__DEEP_LINK__";
+            }
+        </script>
+
+        <script type="text/javascript">
             var navItems = [
                 { label: 'Home', href: '../__BASE__home.html' },
                 { type: 'area', reefRef: __REEFREF__, children: [
