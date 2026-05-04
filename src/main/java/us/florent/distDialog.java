@@ -3,7 +3,7 @@ package us.florent;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
@@ -51,6 +51,9 @@ public class distDialog extends Dialog<List<String>> {
             }
         });
 
+        availableList.setOnKeyPressed(evt -> jumpToLetter(availableList, availableItems, evt));
+        selectedList.setOnKeyPressed(evt -> jumpToLetter(selectedList, selectedItems, evt));
+
         SplitPane splitPane = new SplitPane(
                 new VBox(new Label("Available"), availableList),
                 new VBox(new Label("Selected"), selectedList)
@@ -72,6 +75,20 @@ public class distDialog extends Dialog<List<String>> {
             }
             return null;
         });
+    }
+
+    private static void jumpToLetter(ListView<String> list, ObservableList<String> items, KeyEvent evt) {
+        String ch = evt.getText();
+        if (ch == null || ch.isEmpty()) return;
+        String lower = ch.toLowerCase();
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).toLowerCase().startsWith(lower)) {
+                list.getSelectionModel().select(i);
+                list.scrollTo(i);
+                evt.consume();
+                return;
+            }
+        }
     }
 
     public static List<String> showDialog(Window owner,
