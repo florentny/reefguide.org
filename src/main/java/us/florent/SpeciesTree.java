@@ -955,8 +955,8 @@ public class SpeciesTree {
                 //System.out.println();
 
                 if(compare) {
-                    //compareTaxonLists(sp.getName(), list, result);
-                    compareTaxonLists(sp.getName(), result, list);
+                    compareTaxonLists(sp.getName(), list, result);
+                    //compareTaxonLists(sp.getName(), result, list);
                 }
 
             }
@@ -1052,7 +1052,7 @@ public class SpeciesTree {
     }
 
     void iNaturalistDownload() throws IOException, InterruptedException {
-        String zipFilePath = "/tmp/inaturalist-taxonomy.dwca.zip";
+        String zipFilePath = "/tmp/inaturalist/inaturalist-taxonomy.dwca.zip";
         String url = "https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip";
         File newDir = new File("/tmp/inaturalist");
         if(!newDir.exists()) {
@@ -1186,7 +1186,7 @@ public class SpeciesTree {
         System.out.println();
         System.out.println();
 
-        System.exit(0);
+        //System.exit(0);
 
         StringBuilder out = new StringBuilder();
         speciesTree.printNodeJson(speciesTree.root, null, out);
@@ -1194,7 +1194,7 @@ public class SpeciesTree {
             writer.write(out.toString());
         }
 
-        speciesTree.worms();
+        //speciesTree.worms();
         speciesTree.iNaturalist();
 
     }

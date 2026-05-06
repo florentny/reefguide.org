@@ -1235,7 +1235,7 @@ public class GenReef4 {
 
         var firstCat = species_collection.getCat(sp.id());
         var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
-        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20")  + "&pix=" + ph.id();
         outString = outString.replace("__DEEP_LINK__", deepLink);
 
 

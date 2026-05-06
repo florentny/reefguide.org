@@ -97,12 +97,14 @@ Calappa flammea,295259
 Calappa gallus,294780
 Calappa sulcata,294779
 Calappa torulosa,633057
+Calappula tortugae,1676790
 Cryptosoma balguerii,701332
 Carpilius convexus,120923
 Carpilius corallinus,49634
 Carpilius maculatus,120926
 Dorippe frascone,474842
 Dromia erythropus,462182
+Tumidodromia dormia,968919
 Menippe mercenaria,131045
 Menippe nodifrons,260410
 Percnon abbreviatum,295351
@@ -140,6 +142,7 @@ Callinectes sapidus,49504
 Monomia petrea,1462331
 Portunus pelagicus,127703
 Portunus sayi,295386
+Xiphonectes longispinosus,701400
 Charybdis hellerii,199399
 Cronius ruber,195117
 Gonioinfradens paucidentatus,497752
@@ -288,9 +291,12 @@ Urobatis jamaicensis,49199
 Narcine bancroftii,106603
 Carcharhinus amblyrhynchos,67970
 Carcharhinus leucas,84996
+Carcharhinus melanopterus,67964
 Carcharhinus perezii,188767
 Negaprion brevirostris,106650
 Triaenodon obesus,52314
+Galeocerdo cuvier,52299
+Sphyrna lewini,56764
 Ginglymostoma cirratum,49964
 Nebrius ferrugineus,49962
 Chiloscyllium punctatum,97441
@@ -902,8 +908,7 @@ Fusigobius inframaculatus,318320
 Fusigobius melacron,487716
 Fusigobius neophytus,487154
 Fusigobius signipinnis,196629
-Gnatholepis cauerensis,62598
-Gnatholepis thompsoni,131500
+Hazeus profusus,1313221
 Istigobius decoratus,196654
 Istigobius ornatus,368493
 Istigobius rigilius,103568
@@ -931,6 +936,8 @@ Valenciennea helsdingenii,272555
 Valenciennea puellaris,141843
 Valenciennea strigata,179875
 Vanderhorstia phaeosticta,473969
+Gnatholepis cauerensis,62598
+Gnatholepis thompsoni,131500
 Nemateleotris decora,196489
 Nemateleotris magnifica,106696
 Ptereleotris evides,196487
@@ -1023,6 +1030,7 @@ Pycnochromis margaritifer,1316755
 Pycnochromis retrofasciatus,1316752
 Abudefduf abdominalis,49400
 Abudefduf saxatilis,49402
+Abudefduf septemfasciatus,337753
 Abudefduf sexfasciatus,49401
 Abudefduf sordidus,123922
 Abudefduf taurus,57338
@@ -1343,6 +1351,8 @@ Laticauda laticaudata,35239
 Caretta caretta,39665
 Chelonia mydas,39659
 Eretmochelys imbricata,39672
+Lepidochelys kempii,73844
+Dermochelys coriacea,39677
 Bunodosoma cavernatum,415301
 Bunodosoma granuliferum,525804
 Condylactis gigantea,128110
@@ -1483,6 +1493,7 @@ Pterogorgia guadalupensis,132248
 Siphonogorgia godeffroyi,471791
 Annella mollis,840524
 Briareum asbestinum,132288
+Briareum violaceum,705679
 Ellisella elongata,1019090
 Ellisella schmitti,1124651
 Erythropodium caribaeorum,519935
@@ -1637,6 +1648,7 @@ Tridacna maxima,50589
 Tridacna squamosa,50591
 Ctenoides ales,204594
 Ctenoides scaber,984479
+Limaria fragilis,355664
 Limaria pellucida,253312
 Hyotissa hyotis,196211
 Dendostrea frons,133988
@@ -1665,12 +1677,12 @@ Euprymna berryi,151324
 Abdopus abaculus,469639
 Amphioctopus marginatus,469640
 Amphioctopus siamensis,469418
-Callistoctopus luteus,469641
 Hapalochlaena lunulata,199917
 Macrotritopus defilippi,253679
 Octopus briareus,253681
 Octopus cyanea,49056
 Octopus vulgaris,49315
+Pinnoctopus macropus,1678340
 Thaumoctopus mimicus,319764
 Wunderpus photogenicus,126091
 Epidendrium billeeanum,857482
@@ -1719,6 +1731,7 @@ Thylacodes grandis,1077718
 Conus aurantius,431845
 Conus daucus,328678
 Conus marmoreus,368189
+Conus quercinus,432158
 Conus striatus,368609
 Conus tessulatus,328686
 Conus virgo,432252
@@ -1736,6 +1749,7 @@ Myurellopsis undulata,1144795
 Terebra subulata,368661
 Turbinella angulata,292647
 Cymbiola vespertilio,471936
+Melo aethiopicus,865981
 Architectonica modesta,1353283
 Architectonica perspectiva,355522
 Heliacus variegatus,201292
@@ -1841,6 +1855,7 @@ Phyllidiella rosans,121359
 Phyllidiopsis annae,126094
 Phyllidiopsis krempfi,143074
 Phyllidiopsis shireenae,120977
+Phyllidiopsis striata,126109
 Reticulidia fungia,120988
 Reticulidia halgerda,120989
 Gymnodoris crocea,1143046
@@ -1850,10 +1865,12 @@ Nembrotha chamberlaini,121050
 Nembrotha cristata,119438
 Nembrotha kubaryana,126110
 Nembrotha lineolata,119860
+Nembrotha lorosae,1679555
 Nembrotha milleri,142953
 Plocamopherus maculapodium,823803
 Roboastra gracilis,120982
 Tambja morosa,120948
+Thecacera melkyi,1679553
 Thecacera picta,468030
 Caloria indica,119425
 Cratena affinis,843627
