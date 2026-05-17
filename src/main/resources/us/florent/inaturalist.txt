@@ -627,7 +627,9 @@ Paracirrhites arcatus,47578
 Paracirrhites forsteri,67658
 Paracirrhites hemistictus,360094
 Kuhlia mugil,187581
+Kyphosus bigibbus,132397
 Kyphosus cinerascens,51356
+Kyphosus sectatrix,131523
 Kyphosus vaigiensis,210173
 Dactyloptena macracantha,613780
 Dactyloptena orientalis,51376
@@ -1240,9 +1242,10 @@ Acentronura tentaculata,142921
 Amphelikturus dendriticus,621421
 Bulbonaricus brauni,530949
 Corythoichthys amplexus,98543
-Corythoichthys flavofasciatus,129552
+Corythoichthys haematopterus,136416
 Cosmocampus elucens,98553
 Halicampus macrorhynchus,197034
+Hippocampus barbouri,102811
 Hippocampus bargibanti,102812
 Hippocampus erectus,54540
 Hippocampus histrix,102823
