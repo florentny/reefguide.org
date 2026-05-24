@@ -5,7 +5,15 @@
 
 #leftcolumn {
     float: left;
-    width: 288px; /*Width of left column*/
+    width: 350px; /*Width of left column*/
+    margin-left: -100%;
+    /*background: white;*/
+    line-height: 1.3em;
+}
+
+#leftcolumn2 {
+    float: left;
+    width: 250px; /*Width of left column*/
     margin-left: -100%;
     /*background: white;*/
     line-height: 1.3em;
@@ -174,6 +182,16 @@ div.worms a:hover {
     text-decoration: underline;
 }
 
+.taxonlink2, .taxonlink2:visited {
+    color: #709ef3;
+    text-decoration: none;
+}
+
+.taxonlink2:hover {
+    color: #1c94c4;
+    text-decoration: underline;
+}
+
 .sntitle2 {
     color: black;
     font-size: 12px;
@@ -191,6 +209,13 @@ div.worms a:hover {
 
 }
 
+.detailscn {
+    color: #709ef3;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: normal;
+}
+
 .note {
     color: black;
     font-size: 12px;
@@ -203,7 +228,16 @@ div.worms a:hover {
 
 div.infodetails {
     margin: 5px 2px 5px 4px;
+}
 
+
+div.infodetailstaxo {
+    margin: 5px 2px 5px 4px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #709ef3;
 }
 
 div.inforefs {
