@@ -170,8 +170,11 @@ function creategrid() {
         img.className = "selframe";
         img.src = img_reef[i].replace("thumb", thumbClass);
         img.width = imgWidthAct;
-        img.alt = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
-        img.title = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
+        const imgTitle = (name_sci[i] && name_sci[i] !== name_reef[i])
+            ? name_reef[i] + " - " + name_sci[i]
+            : (name_sci[i] || name_reef[i]);
+        img.alt = imgTitle;
+        img.title = imgTitle;
 
         imgLink.appendChild(img);
         imgCell.appendChild(imgLink);

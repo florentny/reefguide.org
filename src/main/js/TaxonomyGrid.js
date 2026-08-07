@@ -58,14 +58,17 @@
                     const thumbUrl = 'pix/thumb/' + sp.id + sp.thumb + '.jpg';
                     const thumbSrc = thumbUrl.replace('thumb', thumbClass);
                     const spUrl = sp.id + '.html' + taxonParam;
+                    const imgTitle = (sp.sname && sp.sname !== sp.name)
+                        ? sp.name + ' - ' + sp.sname
+                        : (sp.sname || sp.name);
                     return e('div', { key: ci, className: cellClass },
                         e('a', { href: spUrl },
                             e('img', {
                                 className: 'selframe',
                                 src: thumbSrc,
                                 width: imgWidthAct,
-                                alt: sp.name + (sp.sname ? ' - ' + sp.sname : ''),
-                                title: sp.name + (sp.sname ? ' - ' + sp.sname : '')
+                                alt: imgTitle,
+                                title: imgTitle
                             })
                         )
                     );

@@ -1060,7 +1060,10 @@ public class GenReef4 {
             output.append("<div class=\"galleryspan\">\n");
             if(sp.photo.size() > 1) {
                 output.append("<a class=\"pixsel\" href=\"pixhtml/").append(thumbimg).append(".html\">");
-                String title = sp.name + " - " + sp.fullSciName() + " - " + ph.location;
+                String title = sp.name + " - " + sp.fullSciName();
+                if(!ph.location.equals("N/A")) {
+                    title += " - " + ph.location;
+                }
                 output.append("<img class=\"selframe\" src=\"").append(base).append("pix/thumb2/").append(thumbimg).append(".jpg\" alt=\"").append(title).append("\" title=\"").append(title).append("\"></a>\n");
                 output.append(" <div class=\"main2\">").append(ph.location).append("</div>\n");
                 String comment = (ph.type == null ? "" : ph.type)
@@ -1069,7 +1072,10 @@ public class GenReef4 {
                 output.append(" <div class=\"main3\">").append(comment).append("</div>\n");
 
             } else {
-                String title = sp.name + " - " + sp.fullSciName() + " - " + ph.location;
+                String title = sp.name + " - " + sp.fullSciName();
+                if(!ph.location.equals("N/A")) {
+                    title += " - " + ph.location;
+                }
                 output.append("<img class=\"selframe\" src=\"").append(base).append("pix/").append(thumbimg).append(".jpg\" alt=\"").append(title).append("\" title=\"").append(title).append("\"/></a>\n");
                 output.append("<div>");
                 String div = "";
