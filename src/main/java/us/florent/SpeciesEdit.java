@@ -26,6 +26,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -53,7 +59,7 @@ public class SpeciesEdit extends Application {
 
     private final GenReef4 db = new GenReef4();
     private List<String> dist_a;
-    private ObservableList<String> locations;
+    private ObservableList<String> locations = null;
     private List<String> types;
     private GenReef4.Species node;
 
@@ -126,7 +132,7 @@ public class SpeciesEdit extends Application {
         initDB();
 
         stage.setTitle("Reef Species Editor");
-        stage.setScene(new Scene(buildUI(), 680, 600));
+        stage.setScene(new Scene(buildUI(), 680, 800));
         stage.show();
 
         fillValues();
@@ -156,14 +162,17 @@ public class SpeciesEdit extends Application {
                 .flatMap(s -> s.dist().stream()).sorted().distinct()
                 .collect(Collectors.toList());
         node = null;
-        locations = FXCollections.observableArrayList(db.species_collection.getAllSpecies().stream()
-                .flatMap(s -> s.photo().stream()).map(GenReef4.Photo::location)
-                .sorted().distinct().collect(Collectors.toList()));
+        if(locations == null) {
+            locations = FXCollections.observableArrayList(db.species_collection.getAllSpecies().stream()
+                    .flatMap(s -> s.photo().stream()).map(GenReef4.Photo::location)
+                    .sorted().distinct().collect(Collectors.toList()));
+            locations.addFirst("");
+        }
         types = db.species_collection.getAllSpecies().stream()
                 .flatMap(s -> s.photo().stream()).filter(p -> p.type() != null)
                 .map(GenReef4.Photo::type).sorted().distinct()
                 .collect(Collectors.toList());
-        locations.addFirst("");
+
         types.addFirst("");
     }
 
@@ -450,11 +459,19 @@ public class SpeciesEdit extends Application {
 
         Menu editMenu = new Menu("Edit");
         MenuItem reloadItem = new MenuItem("Reload");
-        MenuItem diffItem = new MenuItem("Diff");
+        reloadItem.setOnAction(e -> reloadAction());
         MenuItem newLocItem = new MenuItem("New Location");
-        editMenu.getItems().addAll(reloadItem, diffItem, newLocItem);
+        editMenu.getItems().addAll(reloadItem, newLocItem);
 
         menuBar.getMenus().addAll(fileMenu, editMenu);
+
+        for (TextField tf : List.of(IDTextField, NameTextField, sciTextField, subgenusTextField,
+                taxorefTextField, depth1TextField, depth2TextField, sizeTextField,
+                disp1TextField, disp2TextField, disp3TextField, disp4TextField,
+                thumbTextField, thumb2TextField, thumb3TextField, thumb4TextField,
+                akaTextField, asnTextField, distTextField, noteTextField)) {
+            setupPrimaryClipboard(tf);
+        }
 
         VBox root = new VBox(menuBar, form, photoTable);
         VBox.setVgrow(photoTable, Priority.ALWAYS);
@@ -645,6 +662,20 @@ public class SpeciesEdit extends Application {
         }
     }
 
+    private void reloadAction() {
+        String currentId = IDTextField.getText().trim();
+        locations = null;
+        try {
+            initDB();
+        } catch (IOException ex) {
+            Logger.getLogger(SpeciesEdit.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        if (!currentId.isEmpty() && getNode(currentId) != null) {
+            loadSpecies(currentId);
+        }
+    }
+
     private void newAction() {
         IDTextField.setText("");
         NameTextField.setText("");
@@ -782,6 +813,34 @@ public class SpeciesEdit extends Application {
                 }
             }
         };
+    }
+
+    private static final java.awt.datatransfer.Clipboard PRIMARY =
+            Toolkit.getDefaultToolkit().getSystemSelection();
+
+    private static void setupPrimaryClipboard(TextField tf) {
+        if (PRIMARY == null) return; // not supported on this platform (Windows/macOS)
+
+        // Copy selection → X11 primary selection
+        tf.selectedTextProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.isEmpty()) {
+                PRIMARY.setContents(new StringSelection(newVal), null);
+            }
+        });
+
+        // Middle-click → paste from X11 primary selection at caret position
+        tf.addEventHandler(MouseEvent.MOUSE_RELEASED, evt -> {
+            if (evt.getButton() == MouseButton.MIDDLE) {
+                try {
+                    Transferable t = PRIMARY.getContents(null);
+                    if (t != null && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                        String text = (String) t.getTransferData(DataFlavor.stringFlavor);
+                        tf.insertText(tf.getCaretPosition(), text);
+                    }
+                } catch (Exception ignored) {}
+                evt.consume();
+            }
+        });
     }
 
     GenReef4.Species getNode(String name) {

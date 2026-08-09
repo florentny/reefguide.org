@@ -1,4 +1,5 @@
 Chloeia bemisae,1449971
+Chloeia euglochis,1452607
 Chloeia flava,368720
 Chloeia fusca,200946
 Chloeia viridis,194931
@@ -97,12 +98,15 @@ Calappa flammea,295259
 Calappa gallus,294780
 Calappa sulcata,294779
 Calappa torulosa,633057
+Calappula tortugae,1676790
 Cryptosoma balguerii,701332
 Carpilius convexus,120923
 Carpilius corallinus,49634
 Carpilius maculatus,120926
+Troglocarcinus corallicola,1687066
 Dorippe frascone,474842
 Dromia erythropus,462182
+Tumidodromia dormia,968919
 Menippe mercenaria,131045
 Menippe nodifrons,260410
 Percnon abbreviatum,295351
@@ -140,6 +144,7 @@ Callinectes sapidus,49504
 Monomia petrea,1462331
 Portunus pelagicus,127703
 Portunus sayi,295386
+Xiphonectes longispinosus,701400
 Charybdis hellerii,199399
 Cronius ruber,195117
 Gonioinfradens paucidentatus,497752
@@ -288,9 +293,13 @@ Urobatis jamaicensis,49199
 Narcine bancroftii,106603
 Carcharhinus amblyrhynchos,67970
 Carcharhinus leucas,84996
+Carcharhinus limbatus,55529
+Carcharhinus melanopterus,67964
 Carcharhinus perezii,188767
 Negaprion brevirostris,106650
 Triaenodon obesus,52314
+Galeocerdo cuvier,52299
+Sphyrna lewini,56764
 Ginglymostoma cirratum,49964
 Nebrius ferrugineus,49962
 Chiloscyllium punctatum,97441
@@ -520,13 +529,14 @@ Saurida flamma,333066
 Saurida gracilis,196571
 Synodus binotatus,196569
 Synodus dermatogenys,121227
+Synodus foetens,54440
 Synodus intermedius,49404
 Synodus rubromarmoratus,196568
 Synodus ulae,123123
 Synodus variegatus,123124
 Trachinocephalus trachinus,544283
-Batrachoides gilberti,316993
 Sanopus astrifer,112032
+Sanopus barbatus,609262
 Sanopus splendidus,112035
 Ablennes hians,135196
 Strongylura notata,179467
@@ -565,6 +575,7 @@ Acanthemblemaria macrospilus,93033
 Acanthemblemaria maria,179865
 Acanthemblemaria spinosa,192654
 Chaenopsis limbaughi,445753
+Chaenopsis ocellata,317038
 Emblemaria pandionis,131509
 Emblemariopsis signifer,99872
 Lucayablennius zingaro,147135
@@ -586,6 +597,7 @@ Dactylopus dactylopus,319539
 Synchiropus bartelsi,196565
 Synchiropus moyeri,358853
 Synchiropus splendidus,56072
+Centropomus undecimalis,49437
 Sphyraena barracuda,47251
 Sphyraena forsteri,179870
 Sphyraena qenie,136601
@@ -621,7 +633,9 @@ Paracirrhites arcatus,47578
 Paracirrhites forsteri,67658
 Paracirrhites hemistictus,360094
 Kuhlia mugil,187581
+Kyphosus bigibbus,132397
 Kyphosus cinerascens,51356
+Kyphosus sectatrix,131523
 Kyphosus vaigiensis,210173
 Dactyloptena macracantha,613780
 Dactyloptena orientalis,51376
@@ -789,6 +803,7 @@ Calotomus carolinus,96498
 Sparisoma atomarium,112857
 Sparisoma aurofrenatum,112858
 Sparisoma chrysopterum,49929
+Sparisoma radians,112863
 Sparisoma rubripinne,112864
 Sparisoma viride,112867
 Iniistius aneitensis,103426
@@ -864,6 +879,7 @@ Amblygobius phalaena,153195
 Arcygobius baliurus,475954
 Asterropteryx semipunctata,359360
 Asterropteryx striata,267747
+Bathygobius mystacium,147104
 Bryaninops amplus,96074
 Bryaninops erythrops,424155
 Bryaninops natans,196644
@@ -902,8 +918,7 @@ Fusigobius inframaculatus,318320
 Fusigobius melacron,487716
 Fusigobius neophytus,487154
 Fusigobius signipinnis,196629
-Gnatholepis cauerensis,62598
-Gnatholepis thompsoni,131500
+Hazeus profusus,1313221
 Istigobius decoratus,196654
 Istigobius ornatus,368493
 Istigobius rigilius,103568
@@ -911,6 +926,7 @@ Koumansetta rainfordi,196639
 Lubricogobius exiguus,530053
 Luposicya lupus,487152
 Lythrypnus dalli,104964
+Microgobius microlepis,490170
 Nes longus,147139
 Pleurosicya labiata,473743
 Pleurosicya micheli,359837
@@ -931,6 +947,8 @@ Valenciennea helsdingenii,272555
 Valenciennea puellaris,141843
 Valenciennea strigata,179875
 Vanderhorstia phaeosticta,473969
+Gnatholepis cauerensis,62598
+Gnatholepis thompsoni,131500
 Nemateleotris decora,196489
 Nemateleotris magnifica,106696
 Ptereleotris evides,196487
@@ -1023,6 +1041,7 @@ Pycnochromis margaritifer,1316755
 Pycnochromis retrofasciatus,1316752
 Abudefduf abdominalis,49400
 Abudefduf saxatilis,49402
+Abudefduf septemfasciatus,337753
 Abudefduf sexfasciatus,49401
 Abudefduf sordidus,123922
 Abudefduf taurus,57338
@@ -1164,6 +1183,7 @@ Pteroidichthys amboinensis,318018
 Rhinopias aphanes,196722
 Rhinopias frondosa,196723
 Scorpaena albifimbria,131449
+Scorpaena brasiliensis,179470
 Scorpaena grandicornis,53569
 Scorpaena inermis,85249
 Scorpaena mystes,112345
@@ -1232,9 +1252,10 @@ Acentronura tentaculata,142921
 Amphelikturus dendriticus,621421
 Bulbonaricus brauni,530949
 Corythoichthys amplexus,98543
-Corythoichthys flavofasciatus,129552
+Corythoichthys haematopterus,136416
 Cosmocampus elucens,98553
 Halicampus macrorhynchus,197034
+Hippocampus barbouri,102811
 Hippocampus bargibanti,102812
 Hippocampus erectus,54540
 Hippocampus histrix,102823
@@ -1288,6 +1309,7 @@ Pervagor spilosoma,122115
 Pseudalutarius nasicornis,199313
 Pseudomonacanthus macrurus,272552
 Stephanolepis hispida,132526
+Stephanolepis setifer,52164
 Acanthostracion polygonium,1315642
 Acanthostracion quadricornis,49925
 Lactophrys bicaudalis,120129
@@ -1333,7 +1355,9 @@ Canthigaster valentini,129549
 Sphoeroides spengleri,49265
 Sphoeroides testudineus,317382
 Torquigener hypselogeneion,57381
+Megaptera novaeangliae,41566
 Globicephala macrorhynchus,41532
+Stenella frontalis,41503
 Stenella longirostris,41496
 Tursiops truncatus,41482
 Trichechus manatus,46316
@@ -1343,6 +1367,8 @@ Laticauda laticaudata,35239
 Caretta caretta,39665
 Chelonia mydas,39659
 Eretmochelys imbricata,39672
+Lepidochelys kempii,73844
+Dermochelys coriacea,39677
 Bunodosoma cavernatum,415301
 Bunodosoma granuliferum,525804
 Condylactis gigantea,128110
@@ -1483,6 +1509,7 @@ Pterogorgia guadalupensis,132248
 Siphonogorgia godeffroyi,471791
 Annella mollis,840524
 Briareum asbestinum,132288
+Briareum violaceum,705679
 Ellisella elongata,1019090
 Ellisella schmitti,1124651
 Erythropodium caribaeorum,519935
@@ -1637,6 +1664,7 @@ Tridacna maxima,50589
 Tridacna squamosa,50591
 Ctenoides ales,204594
 Ctenoides scaber,984479
+Limaria fragilis,355664
 Limaria pellucida,253312
 Hyotissa hyotis,196211
 Dendostrea frons,133988
@@ -1663,14 +1691,15 @@ Ascarosepion pfefferi,1500735
 Sepiadarium kochii,752839
 Euprymna berryi,151324
 Abdopus abaculus,469639
+Amphioctopus exannulatus,699538
 Amphioctopus marginatus,469640
 Amphioctopus siamensis,469418
-Callistoctopus luteus,469641
 Hapalochlaena lunulata,199917
 Macrotritopus defilippi,253679
 Octopus briareus,253681
 Octopus cyanea,49056
 Octopus vulgaris,49315
+Pinnoctopus macropus,1678340
 Thaumoctopus mimicus,319764
 Wunderpus photogenicus,126091
 Epidendrium billeeanum,857482
@@ -1703,6 +1732,7 @@ Apicalia echinasteri,1221487
 Echineulima asthenosomae,346878
 Melanella hypsela,254038
 Thyca crystallina,1065456
+Naticarius canrena,208880
 Naticarius onca,418012
 Naticarius orientalis,380324
 Notocochlis cernica,1006893
@@ -1716,26 +1746,30 @@ Terestrombus fragilis,471916
 Tonna canaliculata,500791
 Coriocella nigra,199591
 Thylacodes grandis,1077718
+Sinistrofulgur sinistrum,503453
+Fasciolaria tulipa,208739
+Triplofusus giganteus,253547
+Nassarius papillosus,121761
 Conus aurantius,431845
 Conus daucus,328678
 Conus marmoreus,368189
+Conus quercinus,432158
 Conus striatus,368609
 Conus tessulatus,328686
 Conus virgo,432252
-Fasciolaria tulipa,208739
-Triplofusus giganteus,253547
+Myurella pygmaea,1225813
+Myurellopsis undulata,1144795
+Terebra subulata,368661
 Domiporta granatina,371394
 Probata barbadensis,1400357
 Chicoreus brevifrons,292586
 Chicoreus territus,1228275
 Hexaplex fulvescens,254914
-Nassarius papillosus,121761
 Oliva reticularis,254975
-Myurella pygmaea,1225813
-Myurellopsis undulata,1144795
-Terebra subulata,368661
 Turbinella angulata,292647
+Prunum apicinum,254853
 Cymbiola vespertilio,471936
+Melo aethiopicus,865981
 Architectonica modesta,1353283
 Architectonica perspectiva,355522
 Heliacus variegatus,201292
@@ -1787,6 +1821,7 @@ Goniobranchus reticulatus,469414
 Verconia alboannulata,715146
 Ceratosoma tenue,120937
 Felimare marci,715079
+Felimare picta,469400
 Hypselodoris apolegma,54667
 Hypselodoris bullockii,548309
 Hypselodoris decorata,782298
@@ -1808,7 +1843,7 @@ Miamira alleni,552180
 Miamira miamirana,418465
 Thorunna halourga,121317
 Thorunna kahuna,121314
-Hexabranchus sanguineus,244849
+Hexabranchus lacer,1475021
 Asteronotus cespitosus,52961
 Carminodoris bifurcata,468179
 Carminodoris estrelyado,847071
@@ -1833,6 +1868,7 @@ Phyllidia ocellata,50554
 Phyllidia picta,207581
 Phyllidia polkadotsa,120983
 Phyllidia varicosa,49735
+Phyllidiella annulata,132884
 Phyllidiella granulata,130206
 Phyllidiella lizae,201639
 Phyllidiella nigra,50552
@@ -1841,6 +1877,7 @@ Phyllidiella rosans,121359
 Phyllidiopsis annae,126094
 Phyllidiopsis krempfi,143074
 Phyllidiopsis shireenae,120977
+Phyllidiopsis striata,126109
 Reticulidia fungia,120988
 Reticulidia halgerda,120989
 Gymnodoris crocea,1143046
@@ -1850,10 +1887,12 @@ Nembrotha chamberlaini,121050
 Nembrotha cristata,119438
 Nembrotha kubaryana,126110
 Nembrotha lineolata,119860
+Nembrotha lorosae,1679555
 Nembrotha milleri,142953
 Plocamopherus maculapodium,823803
 Roboastra gracilis,120982
 Tambja morosa,120948
+Thecacera melkyi,1679553
 Thecacera picta,468030
 Caloria indica,119425
 Cratena affinis,843627
@@ -1862,6 +1901,7 @@ Moridilla brockii,504306
 Pteraeolidia semperi,469568
 Coryphellina exoptata,871903
 Coryphellina hamanni,1037978
+Coryphellina marcusorum,992708
 Coryphellina rubrolineata,699010
 Flabellina engeli,292741
 Glaucus atlanticus,50498
@@ -1872,7 +1912,6 @@ Phyllodesmium magnum,199476
 Eubranchus ocellatus,473832
 Longibranchus putnami,1668619
 Produnga rubropunctata,1668627
-Tenellia lugubris,521162
 Tenellia puti,1595807
 Samla bicolor,696622
 Bornella anguilla,64717
@@ -1901,6 +1940,7 @@ Thuridilla gracilis,194607
 Thuridilla lineolata,126108
 Thuridilla picta,292751
 Thuridilla splendens,469569
+Nerita fulgurans,82796
 Macroschisma sinense,1395640
 Cittarium pica,133677
 Lithopoma phoebium,528991
@@ -1919,6 +1959,7 @@ Maritigrella eschara,354902
 Maritigrella fuscopunctata,354907
 Prostheceraeus crozieri,962052
 Pseudobiceros bedfordi,121378
+Pseudobiceros damawan,842482
 Pseudobiceros flowersi,319378
 Pseudobiceros gratus,768606
 Pseudobiceros hancockanus,325946
@@ -1959,7 +2000,6 @@ Callyspongia fallax,131737
 Callyspongia aculeata,1377811
 Callyspongia aerizusa,983844
 Callyspongia plicifera,128114
-Chalinula nematifera,549779
 Haliclona fascigera,472910
 Amphimedon nodosa,1660386
 Cribrochalina vasculum,424550

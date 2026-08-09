@@ -1,21 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>__TITLE__ - __REEF__</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="description" content="__TITLE__ - __REEF__" />
-        <meta name="keywords" content="Florent Reef Guide - __TITLE__ - __REEF__" />
-        <meta name="author" content="Florent Charpin" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="description" content="__TITLE__ - __REEF__">
+        <meta name="keywords" content="Florent Reef Guide - __TITLE__ - __REEF__">
+        <meta name="author" content="Florent Charpin">
 
         <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-        <script type="text/javascript" src="../js/TopNav.js"></script>
-        <script type="text/javascript" src="../js/mainindex.js"></script>
+        <script src="../js/TopNav.js"></script>
+        <script src="../js/mainindex.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="../css/all.css" />
-        <link rel="stylesheet" type="text/css" href="../css/species.css" />
+        <link rel="stylesheet" type="text/css" href="../css/all.css">
+        <link rel="stylesheet" type="text/css" href="../css/species.css">
 
-        <script type="text/javascript">
+        <script>
+            if (new URLSearchParams(window.location.search).get('desktop') === 'true') {
+                sessionStorage.setItem('desktopMode', 'true');
+            }
+            if (screen.width <= 750 && sessionStorage.getItem('desktopMode') !== 'true') {
+                document.location = "https://m.reefguide.org/__DEEP_LINK__";
+            }
+        </script>
+
+        <script>
             var navItems = [
                 { label: 'Home', href: '../__BASE__home.html' },
                 { type: 'area', reefRef: __REEFREF__, children: [
@@ -71,7 +80,7 @@
                 </div>
             </div>
 
-            <div id="leftcolumn" style="font-size: 10px;">
+            <div id="leftcolumn2" style="font-size: 10px;">
                 <div class="innertube">
                      <div class="infobox">
                     	<div class="navbox" style="margin-left: 0px; margin-top: 5px;  margin-bottom: 5px; ">
@@ -89,17 +98,17 @@
                         <div class="infodetails">__DEPTH__</div>
                         <div class="infodetails">__DIST__</div>
 
-                        <br />
+                        <br>
                     </div>
 
                     <div class="infobox">
-                    <br />
+                    <br>
                      __THUMBS__
                     </div>
 
-                    <br />
-                    All Photographs<br />
-                    &copy; 2026 Florent Charpin
+                    <br>
+                    All Photographs
+                    &copy; Florent Charpin unless explicitly stated otherwise.
               </div>
 
             </div>

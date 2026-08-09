@@ -12,7 +12,16 @@
     }
 
     function countSpecies(node) {
-        let count = node.species ? node.species.length : 0;
+        let count = 0;
+        if (node.species) {
+            let prev = "";
+            node.species.forEach(function(sp) {
+               if(sp.id !== prev) {
+                   count++;
+                   prev = sp.id;
+               }
+            });
+        }
         if (node.children) {
             node.children.forEach(function(child) {
                 count += countSpecies(child);

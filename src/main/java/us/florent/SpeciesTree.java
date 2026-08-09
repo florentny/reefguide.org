@@ -77,6 +77,7 @@ public class SpeciesTree {
         boolean wasInserted = false;
         private String category = null;
         private String superCategory = null;
+        private boolean hide = false;
         int AphiaID;
         int iNaturalistID;
         int numSpecies = 0;
@@ -134,6 +135,14 @@ public class SpeciesTree {
         // Number of species under this taxon (populated by populateNumSpecies())
         public int getNumSpecies() {
             return numSpecies;
+        }
+
+        public boolean isHide() {
+            return hide;
+        }
+
+        public void setHide(boolean hide) {
+            this.hide = hide;
         }
     }
 
@@ -446,8 +455,10 @@ public class SpeciesTree {
             String rank = doc.get("rank").toString();
             String parent = doc.get("parent").toString();
             String category = doc.get("category") != null ? doc.get("category").toString() : null;
+            boolean hide = doc.get("hide") != null && (boolean) doc.get("hide");
             Taxon taxon = new Taxon(name, rank);
             taxon.setCategory(category);
+            taxon.setHide(hide);
             TreeNode<Taxon> node = new TreeNode<>(taxon);
             if(!parent.isEmpty()) {
                 //TreeNode<Taxon> parentNode = breadthFirstSearch(root, parent);
@@ -506,7 +517,7 @@ public class SpeciesTree {
     protected void setSpeciesCategory(TreeNode<Taxon> sp) {
         var parent = sp.getParent();
         while(parent != null) {
-            if(parent.getValue().getCategory() != null) {
+            if(parent.getValue().getCategory() != null && !parent.getValue().isHide()) {
                 String cat = parent.getValue().getCategory();
                 sp.getValue().setCategory(cat);
                 if(categoryToSuperCategory != null) {
@@ -955,8 +966,8 @@ public class SpeciesTree {
                 //System.out.println();
 
                 if(compare) {
-                    //compareTaxonLists(sp.getName(), list, result);
-                    compareTaxonLists(sp.getName(), result, list);
+                    compareTaxonLists(sp.getName(), list, result);
+                    //compareTaxonLists(sp.getName(), result, list);
                 }
 
             }
@@ -1052,7 +1063,7 @@ public class SpeciesTree {
     }
 
     void iNaturalistDownload() throws IOException, InterruptedException {
-        String zipFilePath = "/tmp/inaturalist-taxonomy.dwca.zip";
+        String zipFilePath = "/tmp/inaturalist/inaturalist-taxonomy.dwca.zip";
         String url = "https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip";
         File newDir = new File("/tmp/inaturalist");
         if(!newDir.exists()) {
@@ -1099,7 +1110,7 @@ public class SpeciesTree {
         List<String> speciesList = getAllSpeciesSciNAmes(root, true);
         List<String> outputLines = Collections.synchronizedList(new ArrayList<>());
         AtomicInteger count = new AtomicInteger();
-        try(var customPool = new ForkJoinPool(2)) {
+        try(var customPool = new ForkJoinPool(1)) {
             try {
                 customPool.submit(() ->
                         speciesList.parallelStream().limit(5000).forEach(sp -> {
@@ -1186,16 +1197,14 @@ public class SpeciesTree {
         System.out.println();
         System.out.println();
 
-        System.exit(0);
-
         StringBuilder out = new StringBuilder();
         speciesTree.printNodeJson(speciesTree.root, null, out);
         try(FileWriter writer = new FileWriter("/tmp/taxonomy_nodes.json")) {
             writer.write(out.toString());
         }
 
-        speciesTree.worms();
-        speciesTree.iNaturalist();
+        //speciesTree.worms();
+        //speciesTree.iNaturalist();
 
     }
 

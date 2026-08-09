@@ -72,7 +72,6 @@ class SpeciesEditTest {
 
     @Test
     void testPopulateTableWithPhotos() {
-        var edit = new SpeciesEdit();
         ObservableList<SpeciesEdit.PhotoRow> photoData = FXCollections.observableArrayList();
         // Use reflection-free approach: call populateTable indirectly by setting up photoData field
         // Instead, test the logic directly

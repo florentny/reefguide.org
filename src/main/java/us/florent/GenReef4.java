@@ -1,5 +1,6 @@
 package us.florent;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -680,6 +681,7 @@ public class GenReef4 {
         ObjectNode obj = mapper.createObjectNode();
         obj.put("name", node.getValue().getName());
         obj.put("rank", node.getValue().getRank());
+        obj.put("count", node.getValue().getNumSpecies());
         if (node.getValue().getCategory() != null) obj.put("category", node.getValue().getCategory());
         obj.set("children", childrenArr);
         obj.set("species", speciesArr);
@@ -716,8 +718,27 @@ public class GenReef4 {
                 gen.writeStringField("type", getSpNull(p.type()));
                 gen.writeStringField("comment", getSpNull(p.comment()));
                 gen.writeEndObject();
-                if (limit > 0) {
-                    Files.copy(Paths.get("/run/media/fc/video/pix5/" + sp.id + p.id() + ".jpg"), Paths.get("/run/media/fc/video/pix/" + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                if (limit >= -1) {
+                    String photoPath;
+                    var c = sp.id.charAt(0);
+                    if(c >= 'a' && c < 'e') {
+                        photoPath = "/data5/mobile/pix1/";
+                    } else if(c >= 'e' && c < 'm') {
+                        photoPath = "/data5/mobile/pix2/";
+                    } else if(c >= 'm' && c < 's') {
+                        photoPath = "/data5/mobile/pix3/";
+                    } else  {
+                        photoPath = "/data5/mobile/pix4/";
+                    }
+                    File file = new File(photoPath + sp.id + p.id() + ".jpg");
+                    if (!file.exists()) {
+                        try {
+                            Files.copy(Paths.get("/home/fc/web/reef4/pix/thumb5/" + sp.id + p.id() + ".jpg"), Paths.get(photoPath + sp.id + p.id() + ".jpg"), StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("copy file " + photoPath + sp.id + p.id() + ".jpg");
+                        } catch (java.nio.file.NoSuchFileException ex) {
+                            System.out.println("Cannot copy file " + photoPath + sp.id + p.id() + ".jpg");
+                        }
+                    }
                 }
             }
             gen.writeEndArray();
@@ -770,32 +791,32 @@ public class GenReef4 {
             outString.append("<link>").append(itemUrl).append("</link>");
             outString.append("<guid isPermaLink=\"true\">").append(itemUrl).append("</guid>");
             outString.append("<description><![CDATA[");
-            outString.append("<img src=\"https://reefguide.org/pix/thumb3/").append(sp.id).append(sp.thumbs.getFirst()).append(".jpg\" /><br />");
-            outString.append(sp.name).append("<br />");
+            outString.append("<img src=\"https://reefguide.org/pix/thumb3/").append(sp.id).append(sp.thumbs.getFirst()).append(".jpg\" /><br>");
+            outString.append(sp.name).append("<br>");
             if(sp.fullSciName() != null && !sp.fullSciName().isEmpty())
-                outString.append("Scientific Name: <i>").append(sp.fullSciName()).append("</i><br />\n");
+                outString.append("Scientific Name: <i>").append(sp.fullSciName()).append("</i><br>\n");
             var taxon = speciesTree.getPathToSpecies(sp.id);
             taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Order")).findFirst().ifPresent(t -> {
                 outString.append("Order: <i>").append(t.getName()).append("</i>");
                 if(t.getCategory() != null) {
                     outString.append(" (").append(t.getCategory()).append(")");
                 }
-                outString.append("<br />\n");
+                outString.append("<br>\n");
             });
             taxon.stream().filter(t -> t.getRank() != null && t.getRank().equals("Family")).findFirst().filter(f -> !f.getName().equals("Unknown")).ifPresent(t -> {
                 outString.append("Family: <i>").append(t.getName()).append("</i>");
                 if(t.getCategory() != null) {
                     outString.append(" (").append(t.getCategory()).append(")");
                 }
-                outString.append("<br />\n");
+                outString.append("<br>\n");
             });
 
-            outString.append("Category: ").append(species_collection.getCat(sp.id)).append("<br />\n");
+            outString.append("Category: ").append(species_collection.getCat(sp.id)).append("<br>\n");
             if(sp.size != null)
-                outString.append("Size: ").append(sp.size).append("<br />\n");
+                outString.append("Size: ").append(sp.size).append("<br>\n");
             if(sp.depth != null)
-                outString.append("Depth: ").append(sp.depth).append("<br />\n");
-            outString.append("Distribution: ").append(String.join(", ", sp.dist)).append("<br />\n");
+                outString.append("Depth: ").append(sp.depth).append("<br>\n");
+            outString.append("Distribution: ").append(String.join(", ", sp.dist)).append("<br>\n");
             outString.append("]]></description>");
             int idx = i.getAndIncrement();
             if(group.dates.get(idx) != null) {
@@ -970,14 +991,24 @@ public class GenReef4 {
         speciesTree.getPathToSpecies(name).stream().filter(t -> !t.getShortSciName().contains("undescribed")).filter(t -> !t.getShortSciName().contains("/")).
                 filter(t -> !remove.contains(t.getRank())).forEach(t -> {
                     var tip = "";
-                    if(t.getCategory() != null) {
-                        tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
-                    }
+                    var commonName = "";
                     var taxonUrl = "index" + group.index + ".html#taxon=" + URLEncoder.encode(t.getShortSciName(), StandardCharsets.UTF_8);
-                    taxonomy.append("<div class=\"infodetails\"><span class=\"sntitle\"").append(tip).append(">").append(ident)
-                            .append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">")
-                            .append(t.getShortSciName()).append("</a>")
-                            .append("</span><span class=\"details\"> (").append(t.getRank()).append(")</span></div>").append("\n");
+                    if(t.getCategory() != null && !t.getRank().equals("Species")) {
+                        tip = " title=\"" + t.getCategory().replace("&", "&amp;") + "\"";
+                        commonName =  " " + "<a href=\"" + taxonUrl + "\" class=\"taxonlink2\">"
+                                + t.getCategory().replace("&", "&amp;")
+                        + "</a>";
+                    }
+                    taxonomy.append("<div class=\"infodetailstaxo\"><span class=\"sntitle\"").append(tip).append(">").append(ident);
+                    if(!t.getRank().equals("Species")) {
+                        taxonomy.append("<a href=\"").append(taxonUrl).append("\" class=\"taxonlink\">");
+                        taxonomy.append(t.getShortSciName()).append("</a>");
+                    }
+                    else
+                        taxonomy.append(t.getShortSciName());
+                    taxonomy.append("</span><span class=\"details\"> (").append(t.getRank())
+                            .append(")</span><span class=\"detailscn\">").append(commonName).append("</span>")
+                            .append("</div>").append("\n");
                     if(ident.isEmpty())
                         ident.append("&boxur;");
                     else
@@ -999,7 +1030,7 @@ public class GenReef4 {
             outString = outString.replace("__AKA__", "");
         }
         if(sp.note != null) {
-            outString = outString.replace("__NOTE__", "<span class=\"details\">"  + processNote(sp.note) + "</span><br />");
+            outString = outString.replace("__NOTE__", "<span class=\"details\">"  + processNote(sp.note) + "</span><br>");
         } else {
             outString = outString.replace("__NOTE__", "");
         }
@@ -1029,24 +1060,22 @@ public class GenReef4 {
             output.append("<div class=\"galleryspan\">\n");
             if(sp.photo.size() > 1) {
                 output.append("<a class=\"pixsel\" href=\"pixhtml/").append(thumbimg).append(".html\">");
-                String title = sp.name + " - " + sp.fullSciName() + " - " + ph.location;
-                output.append("<img class=\"selframe\" src=\"").append(base).append("pix/thumb2/").append(thumbimg).append(".jpg\" alt=\"").append(title).append("\" title=\"").append(title).append("\"/></a>\n");
+                output.append("<img class=\"selframe\" src=\"").append(base).append("pix/thumb2/").append(thumbimg).append(".jpg").append("\"></a>\n");
                 output.append(" <div class=\"main2\">").append(ph.location).append("</div>\n");
                 String comment = (ph.type == null ? "" : ph.type)
                         + ((ph.comment != null && ph.type != null) ? " - " : "")
-                        + (ph.comment == null ? "&nbsp" : ph.comment);
+                        + (ph.comment == null ? "&nbsp;" : ph.comment);
                 output.append(" <div class=\"main3\">").append(comment).append("</div>\n");
 
             } else {
-                String title = sp.name + " - " + sp.fullSciName() + " - " + ph.location;
-                output.append("<img class=\"selframe\" src=\"").append(base).append("pix/").append(thumbimg).append(".jpg\" alt=\"").append(title).append("\" title=\"").append(title).append("\"/></a>\n");
+                output.append("<img class=\"selframe\" src=\"").append(base).append("pix/").append(thumbimg).append(".jpg").append("\"/></a>\n");
                 output.append("<div>");
                 String div = "";
                 if(ph.comment != null) {
                     output.append(ph.comment);
                     div = " / ";
                 }
-                if(!ph.location.isEmpty()) {
+                if(!ph.location.isEmpty() && ! ph.location.equals("N/A")) {
                     output.append(div).append("Location: ").append(ph.location);
                 }
                 output.append("</div>");
@@ -1067,7 +1096,7 @@ public class GenReef4 {
             }
             if(node.iNaturalistID != 0) {
                 if(node.AphiaID != 0) {
-                    links.append("<br />\n");
+                    links.append("<br>\n");
                 }
                 links.append("<a href=\"https://www.inaturalist.org/taxa/").append(node.iNaturalistID).append("\" target=\"_blank\">iNaturalist ID: ").
                         append(node.iNaturalistID).append(Character.toChars(0x1F517)).append("</a>");
@@ -1078,6 +1107,11 @@ public class GenReef4 {
             outString = outString.replace("__LINKS__", "");
         }
 
+
+        var firstCat = species_collection.getCat(sp.id());
+        var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+        outString = outString.replace("__DEEP_LINK__", deepLink);
 
 
         writeToFile(outString, baseIndex + "/" + sp.id + ".html");
@@ -1167,10 +1201,10 @@ public class GenReef4 {
             thumblist.append("<div class=\"infoimg\">");
             //if(i == index) {
             if(ph.id == sidePhoto.id) {
-                thumblist.append("<img src=\"").append(base).append("../pix/thumb3/").append(thumb).append(".jpg\" />\n");
+                thumblist.append("<img alt=\"\" src=\"").append(base).append("../pix/thumb3/").append(thumb).append(".jpg\">\n");
                 before = false;
             } else {
-                thumblist.append("<a href=\"").append(thumb).append(".html\"><img src=\"").append(base).append("../pix/thumb3/").append(thumb).append(".jpg\" /></a>\n");
+                thumblist.append("<a href=\"").append(thumb).append(".html\"><img alt=\"\" src=\"").append(base).append("../pix/thumb3/").append(thumb).append(".jpg\"></a>\n");
             }
             thumblist.append("<div>");
             thumblist.append("&nbsp;");
@@ -1187,7 +1221,7 @@ public class GenReef4 {
 
         String thumbimg = sp.id + ph.id;
         StringBuilder output = new StringBuilder();
-        output.append("<br /><img class=\"selframe\" src=\"").append(base).append("../pix/").append(thumbimg).append(".jpg\" alt=\"").append(sp.name).append(" - ").append(sp.fullSciName()).append("\" title=\"").append(sp.name).append(" - ").append(sp.fullSciName()).append("\" />\n");
+        output.append("<br><img class=\"selframe\" src=\"").append(base).append("../pix/").append(thumbimg).append(".jpg").append("\">\n");
         output.append("<div>");
         String div = "";
         if(ph.comment != null) {
@@ -1201,11 +1235,16 @@ public class GenReef4 {
         if(!Objects.requireNonNull(ph.location).isBlank()) {
             output.append(div).append("Location: ").append(ph.location);
         }
-        output.append("</div><br />");
+        output.append("</div><br>");
 
         outString = outString.replace("__FISH_HTML__", output.toString());
 
         outString = outString.replace("__INDEX__", "../" + sp.id + ".html");
+
+        var firstCat = species_collection.getCat(sp.id());
+        var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+        String deepLink = "browse/species/" + sp.id() + "?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20")  + "&pix=" + ph.id();
+        outString = outString.replace("__DEEP_LINK__", deepLink);
 
 
         writeToFile(outString, baseIndex + "/pixhtml/" + thumbimg + ".html");
@@ -1214,7 +1253,7 @@ public class GenReef4 {
 
     protected String processNote(String note) {
         StringBuilder ret = new StringBuilder();
-        String[] lines = note.split("<br />");
+        String[] lines = note.split("<br>");
         ret.append(lines[0]);
         for(int i = 1; i < lines.length; i++) {
             ret.append(lines[i]);
@@ -1365,6 +1404,15 @@ public class GenReef4 {
             outString = outString.replace("__ANALYTICS__", "");
         }
 
+        if(g.species.isEmpty()) {
+            outString = outString.replace("__DEEP_LINK__", "");
+        } else {
+            var firstCat = species_collection.getCat(g.species.getFirst().id());
+            var superCat = speciesTree.categoryToSuperCategory.get(firstCat).getName();
+            String deepLink = "browse?region=" + reefRef + "&supercat=" + superCat.replace(" ", "%20") + "&category=" + firstCat.replace(" ", "%20");
+            outString = outString.replace("__DEEP_LINK__", deepLink);
+        }
+
         String treeMenuJson = buildTreeMenuJson(indexName);
         outString = outString.replace("__TREEMENU_JSON__", treeMenuJson);
 
@@ -1422,7 +1470,8 @@ public class GenReef4 {
             if((col != 0) && ((col % 3) == 0)) {
                 html.append("</div>\n<div class=\"grid-row\" style=\"grid-template-columns: repeat(3, 1fr)\">");
             }
-            html.append("<div class=\"celltd\" style=\"flex-direction: column\"><img src=\"").append(base).append("pix/thumb/").append(sp.id).append(sp.thumbs().getFirst()).append(".jpg\" alt=\"").append(sp.name).append(" - ").append(sp.fullSciName()).append("\" title=\"").append(sp.name).append(" - ").append(sp.fullSciName()).append("\" />\n");
+            String imgTitle = sp.name.equals(sp.fullSciName()) ? sp.fullSciName() : sp.name + " - " + sp.fullSciName();
+            html.append("<div class=\"celltd\" style=\"flex-direction: column\"><img src=\"").append(base).append("pix/thumb/").append(sp.id).append(sp.thumbs().getFirst()).append(".jpg\" alt=\"").append(imgTitle).append("\" title=\"").append(imgTitle).append("\">\n");
             html.append("<div class=\"nameid\"><a href=\"").append(sp.id).append(".html\">").append(sp.name).append("</a></div></div>");
             col++;
         }
@@ -1515,7 +1564,7 @@ public class GenReef4 {
                 alpha = name.charAt(0);
                 html.append("<div class=\"bigalpha\">").append(alpha).append("</div>");
             }
-            html.append("<a class=\"tocname\" href=\"").append(sp.id).append(".html\">").append(name).append("</a><br />");
+            html.append("<a class=\"tocname\" href=\"").append(sp.id).append(".html\">").append(name).append("</a><br>");
             split--;
         }
         outString = outString.replace("__HTML__", html.toString());
@@ -1555,9 +1604,9 @@ public class GenReef4 {
                 html.append("<a class=\"tocnamesci\" href=\"").append(sp.id).append(".html\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(sp.sciName().split(" ")[1]);
                 if(sp.sciName().split(" ").length > 2)
                     html.append(" ").append(sp.sciName().split(" ")[2]);
-                html.append("</a><br />");
+                html.append("</a><br>");
             } else {
-                html.append("<a class=\"tocnamesci\" href=\"").append(sp.id).append(".html\">").append(sp.sciName()).append("</a><br />");
+                html.append("<a class=\"tocnamesci\" href=\"").append(sp.id).append(".html\">").append(sp.sciName()).append("</a><br>");
                 first = sp.sciName().split(" ")[0];
             }
             split--;
@@ -1596,7 +1645,7 @@ public class GenReef4 {
             TreeMap<String, Species> nameTree = grpName.get(elem);
             for(Species sp : nameTree.values()) {
                 split--;
-                html.append("<a class=\"tocnamegrp\" href=\"").append(sp.id).append(".html\">").append(sp.name).append("</a><br />");
+                html.append("<a class=\"tocnamegrp\" href=\"").append(sp.id).append(".html\">").append(sp.name).append("</a><br>");
             }
 
         }

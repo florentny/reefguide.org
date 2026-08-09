@@ -15,6 +15,56 @@ let currentConfig = SIZE_CONFIGS["1"];
 let curCol = 0;
 let cookieChecked = false;
 
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+// Tooltip HTML with the scientific name in italics. When the common name and
+// scientific name are the same, only the (italic) scientific name is shown.
+function sciTooltipHtml(commonName, sciName) {
+    const hasSci = sciName && sciName.trim().length > 0;
+    if (hasSci && sciName !== commonName)
+        return escapeHtml(commonName) + " - <i>" + escapeHtml(sciName) + "</i>";
+    if (hasSci)
+        return "<i>" + escapeHtml(sciName) + "</i>";
+    return escapeHtml(commonName);
+}
+
+function getSciTooltipEl() {
+    let el = document.getElementById("sci-tooltip");
+    if (!el) {
+        el = document.createElement("div");
+        el.id = "sci-tooltip";
+        el.style.cssText = "position:fixed;z-index:10000;pointer-events:none;background:#2b2b2b;color:#fff;padding:3px 8px;border-radius:4px;font-size:13px;line-height:1.3;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:none;";
+        document.body.appendChild(el);
+    }
+    return el;
+}
+
+const SCI_TOOLTIP_DELAY = 800;
+
+function attachSciTooltip(img, commonName, sciName) {
+    const html = sciTooltipHtml(commonName, sciName);
+    let timer = null;
+    img.addEventListener("mouseenter", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const el = getSciTooltipEl();
+            el.innerHTML = html;
+            el.style.display = "block";
+        }, SCI_TOOLTIP_DELAY);
+    });
+    img.addEventListener("mousemove", (ev) => {
+        const el = getSciTooltipEl();
+        el.style.left = (ev.clientX + 14) + "px";
+        el.style.top = (ev.clientY + 16) + "px";
+    });
+    img.addEventListener("mouseleave", () => {
+        clearTimeout(timer);
+        getSciTooltipEl().style.display = "none";
+    });
+}
+
 function setCookie(name, value) {
     document.cookie = `${name}=${encodeURIComponent(value)};path=/`;
 }
@@ -170,8 +220,11 @@ function creategrid() {
         img.className = "selframe";
         img.src = img_reef[i].replace("thumb", thumbClass);
         img.width = imgWidthAct;
-        img.alt = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
-        img.title = name_reef[i] + (name_sci[i] ? " - " + name_sci[i] : "");
+        const imgTitle = (name_sci[i] && name_sci[i] !== name_reef[i])
+            ? name_reef[i] + " - " + name_sci[i]
+            : (name_sci[i] || name_reef[i]);
+        img.alt = imgTitle;
+        attachSciTooltip(img, name_reef[i], name_sci[i]);
 
         imgLink.appendChild(img);
         imgCell.appendChild(imgLink);

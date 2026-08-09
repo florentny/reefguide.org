@@ -1,20 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <title>Florent's Guide To The Tropical Reefs - Search - Fish, Creatures and Corals species</title>
+
+        <meta name="apple-itunes-app" content="app-id=6762312883">
 
         <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-        <script type="text/javascript" src="js/TopNav.js"></script>
-        <script type="text/javascript" src="js/SpeciesSearch.js"></script>
-        <script type="text/javascript" src="js/mainindex.js"></script>
+        <script src="js/TopNav.js"></script>
+        <script src="js/SpeciesSearch.js"></script>
+        <script src="js/mainindex.js"></script>
 
-        <link rel="stylesheet" type="text/css" href="css/all.css" />
-        <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <link rel="stylesheet" type="text/css" href="css/search.css" />
+        <link rel="stylesheet" type="text/css" href="css/all.css">
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <link rel="stylesheet" type="text/css" href="css/search.css">
 
-        <script type="text/javascript">
+        <script>
+            if (new URLSearchParams(window.location.search).get('desktop') === 'true') {
+                sessionStorage.setItem('desktopMode', 'true');
+            }
+            if (screen.width <= 750 && sessionStorage.getItem('desktopMode') !== 'true') {
+                document.location = "https://m.reefguide.org/search";
+            }
+        </script>
+
+
+        <script>
             var navItems = [
                 { label: 'Home', href: 'home.html' },
                 { label: 'Latest Updates', href: 'latest.html' },
@@ -45,13 +57,14 @@
             <div id="contentwrapper">
 
                 <div id="search-root"></div>
-                <br /><br /><br /><br />
+                <br><br><br /><br>
                 <div style="color: gray;font-size:14px; text-align: center;border-top: 1px solid gray;">
-                    Website design and all pictures &copy; 2004-2026 Florent Charpin<br />
+                    Website design and all content &copy; Florent Charpin<br>
+
 
                     email: &#119;&#119;&#119;&#064;&#114;&#101;&#101;&#102;&#103;&#117;&#105;&#100;&#101;&#046;&#111;&#114;&#103;
                 </div>
-                <br />
+                <br>
 
                  </div>
 
