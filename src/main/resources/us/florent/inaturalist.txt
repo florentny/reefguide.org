@@ -293,6 +293,7 @@ Urobatis jamaicensis,49199
 Narcine bancroftii,106603
 Carcharhinus amblyrhynchos,67970
 Carcharhinus leucas,84996
+Carcharhinus limbatus,55529
 Carcharhinus melanopterus,67964
 Carcharhinus perezii,188767
 Negaprion brevirostris,106650
@@ -1354,7 +1355,9 @@ Canthigaster valentini,129549
 Sphoeroides spengleri,49265
 Sphoeroides testudineus,317382
 Torquigener hypselogeneion,57381
+Megaptera novaeangliae,41566
 Globicephala macrorhynchus,41532
+Stenella frontalis,41503
 Stenella longirostris,41496
 Tursiops truncatus,41482
 Trichechus manatus,46316
@@ -1818,6 +1821,7 @@ Goniobranchus reticulatus,469414
 Verconia alboannulata,715146
 Ceratosoma tenue,120937
 Felimare marci,715079
+Felimare picta,469400
 Hypselodoris apolegma,54667
 Hypselodoris bullockii,548309
 Hypselodoris decorata,782298

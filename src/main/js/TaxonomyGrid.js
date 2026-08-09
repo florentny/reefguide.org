@@ -6,6 +6,58 @@
 
     const DEFAULT_CONFIG = { imgWidth: 240, imgWidthAct: 216, thumbClass: 'thumb', cellClass: 'celltd' };
 
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    // Tooltip HTML with the scientific name in italics. When the common name and
+    // scientific name are the same, only the (italic) scientific name is shown.
+    function sciTooltipHtml(commonName, sciName) {
+        const hasSci = sciName && sciName.trim().length > 0;
+        if (hasSci && sciName !== commonName)
+            return escapeHtml(commonName) + ' - <i>' + escapeHtml(sciName) + '</i>';
+        if (hasSci)
+            return '<i>' + escapeHtml(sciName) + '</i>';
+        return escapeHtml(commonName);
+    }
+
+    function getSciTooltipEl() {
+        let el = document.getElementById('sci-tooltip');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'sci-tooltip';
+            el.style.cssText = 'position:fixed;z-index:10000;pointer-events:none;background:#2b2b2b;color:#fff;padding:3px 8px;border-radius:4px;font-size:13px;line-height:1.3;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.3);display:none;';
+            document.body.appendChild(el);
+        }
+        return el;
+    }
+
+    const SCI_TOOLTIP_DELAY = 500;
+
+    function makeTooltipHandlers(commonName, sciName) {
+        const html = sciTooltipHtml(commonName, sciName);
+        let timer = null;
+        return {
+            onMouseEnter: function() {
+                clearTimeout(timer);
+                timer = setTimeout(function() {
+                    const el = getSciTooltipEl();
+                    el.innerHTML = html;
+                    el.style.display = 'block';
+                }, SCI_TOOLTIP_DELAY);
+            },
+            onMouseMove: function(ev) {
+                const el = getSciTooltipEl();
+                el.style.left = (ev.clientX + 14) + 'px';
+                el.style.top = (ev.clientY + 16) + 'px';
+            },
+            onMouseLeave: function() {
+                clearTimeout(timer);
+                getSciTooltipEl().style.display = 'none';
+            }
+        };
+    }
+
     function getConfig() {
         return window.currentConfig || DEFAULT_CONFIG;
     }
@@ -61,15 +113,15 @@
                     const imgTitle = (sp.sname && sp.sname !== sp.name)
                         ? sp.name + ' - ' + sp.sname
                         : (sp.sname || sp.name);
+                    const tipHandlers = makeTooltipHandlers(sp.name, sp.sname);
                     return e('div', { key: ci, className: cellClass },
                         e('a', { href: spUrl },
-                            e('img', {
+                            e('img', Object.assign({
                                 className: 'selframe',
                                 src: thumbSrc,
                                 width: imgWidthAct,
-                                alt: imgTitle,
-                                title: imgTitle
-                            })
+                                alt: imgTitle
+                            }, tipHandlers))
                         )
                     );
                 }));
