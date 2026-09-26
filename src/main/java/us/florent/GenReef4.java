@@ -1078,7 +1078,7 @@ public class GenReef4 {
                 if(!ph.location.isEmpty() && ! ph.location.equals("N/A")) {
                     output.append(div).append("Location: ").append(ph.location);
                 }
-                output.append("</div>");
+                output.append("</div><br><br>");
             }
             output.append("</div>\n");
             genFishPixFile(sp, ph, cat, baseIndex, reefRef, header);
