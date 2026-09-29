@@ -1081,12 +1081,17 @@ public class SpeciesTree {
 
         // Unzip the file
         try(ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath))) {
+            Path destinationDirPath = Paths.get("/tmp/inaturalist").toAbsolutePath().normalize();
             ZipEntry entry;
             while((entry = zis.getNextEntry()) != null) {
                 if(entry.getName().startsWith("Vernacular")) {
                     continue; // Skip vernacular names file
                 }
-                File file = new File("/tmp/inaturalist", entry.getName());
+                Path resolvedPath = destinationDirPath.resolve(entry.getName()).normalize();
+                if(!resolvedPath.startsWith(destinationDirPath)) {
+                    throw new IOException("Bad zip entry: " + entry.getName());
+                }
+                File file = resolvedPath.toFile();
                 if(entry.isDirectory()) {
                     file.mkdirs();
                 } else {
